@@ -5,20 +5,60 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev         # nodemon + tsx, auto-restarts on src/ changes, connects to MONGO_URI
-npm run build       # tsc -> dist/ (noEmitOnError: strict, must be clean)
-npm run start       # node dist/server.js (run build first)
-npm run lint        # eslint . (flat config, typescript-eslint recommended)
-npm run seed:admin  # create/reset an admin dashboard login - the only way to get one, no HTTP route does this
+npm run dev                        # nodemon + tsx, auto-restarts on src/ changes, connects to MONGO_URI
+npm run build                      # tsc -> dist/ (noEmitOnError: strict, must be clean)
+npm run start                      # node dist/server.js (run build first)
+npm run lint                       # eslint . (flat config, typescript-eslint recommended)
+npm run seed:admin:jigsaw_puzzle   # create/reset a jigsaw_puzzle admin login - the only way to get one, no HTTP route does this
 ```
 
 No test suite exists in this repo. `.env` (gitignored) holds `PORT`,
 `NODE_ENV`, `MONGO_URI`, `CLIENT_URL`, `LOG_LEVEL`, `JWT_SECRET`,
-`JWT_EXPIRES_IN` — see `.env.example` for the shape; `src/config/env.ts`
-validates these with Zod at startup and exits the process on failure
-rather than running half-configured.
+`JWT_EXPIRES_IN` — see `.env.example` for the shape;
+`src/core/config/env.ts` validates these with Zod at startup and exits
+the process on failure rather than running half-configured.
 
-## Architecture
+## Repo shape: one backend, many games
+
+This repo hosts multiple independent game backends behind a single
+Express app and a single deploy, instead of standing up a new hosting
+project for every new game. Each game lives in its own
+`src/games/<name>/` folder with whatever subset of
+`controllers/services/models/routes/validators/types` it actually
+needs — `sockets/` only exists inside a game's folder if that game
+needs live sync (most won't).
+
+`src/core/` holds only transport-agnostic infra any game may use: env
+validation, DB connect/disconnect, the logger, error-handling
+middleware, `AppError`/`asyncHandler`/`response` helpers, and the
+shared `Organization` directory (see Admin auth below). `core/`
+deliberately has zero knowledge of any single game's rules — a file
+belongs there only if it would make equal sense in every game's
+folder.
+
+`app.ts` mounts each game's router at its own path prefix
+(`/api/<name>/...`). `server.ts` creates exactly one HTTP server and
+one Socket.IO instance; a game that needs sockets registers its own
+handlers onto that shared instance from inside its own `sockets/`
+folder, a game that doesn't need sockets never touches it.
+
+Adding a new game means creating `src/games/<name>/` and one mount
+line in `app.ts` — no new hosting project, no new deploy. This trades
+away process isolation between games (one game's crash or deploy
+briefly affects the others sharing the process) for much simpler
+day-to-day ops; that trade only makes sense because these games are
+rarely live at the same time — confirm that's still true before
+assuming it for a new game.
+
+The only game currently implemented is **jigsaw_puzzle**. Two other
+games — `rubus_puzzle` (a self-service kiosk + admin reporting
+dashboard) and `tugwar` — previously lived in this repo undifferentiated
+at the top level (not yet split into their own folders) and were
+removed to start this restructure. Both are fully recoverable from git
+history whenever they come back, at which point they should land as
+their own `src/games/<name>/` folders following the pattern below.
+
+## jigsaw_puzzle (`src/games/jigsaw_puzzle/`)
 
 This is the backend for a live TV picture-puzzle game show: it manages
 game sessions, generates game codes, and holds the authoritative game
@@ -28,8 +68,8 @@ client over Socket.IO. It deliberately does **not** own puzzle content
 ever knows a puzzle ID string and its index in `puzzleIds`.
 
 **Strict layering for REST**: `Route -> Controller -> Service -> Mongoose Model`.
-Controllers (`controllers/game.controller.ts`) only Zod-validate input,
-call a service function, and shape the response — no game logic there.
+`controllers/game.controller.ts` only Zod-validates input, calls a
+service function, and shapes the response — no game logic there.
 
 **All game rules live in `services/game.service.ts`**, which is
 completely transport-agnostic (no Express or Socket.IO imports). It
@@ -39,10 +79,10 @@ identically as the REST `GET` response body and the Socket.IO
 (`toGameStatePayload`) that produces it, so REST and sockets can never
 drift apart on what "the state" looks like.
 
-**Socket.IO (`sockets/`) is a parallel path into the same service
-layer**, not a second copy of the logic: `socket event -> Zod validate
--> role check -> service function -> broadcast game:state to the room`.
-Every game has one room, `game:<CODE>`. Control events
+**`sockets/` is a parallel path into the same service layer**, not a
+second copy of the logic: `socket event -> Zod validate -> role check
+-> service function -> broadcast game:state to the room`. Every game
+has one room, `game:<CODE>`. Control events
 (start/judge/pause/resume/skip/restart/end) are rejected unless the
 emitting socket joined that specific game as `"facilitator"`
 (`sockets/game.socket.ts`'s `assertFacilitator`).
@@ -68,49 +108,47 @@ skipped. This keeps pacing entirely under the facilitator's control
 using only the events already defined, rather than an implicit
 auto-advance timer.
 
-See `README.md` for the full REST endpoint list, Socket.IO event
-payloads, and env var reference.
+REST routes are mounted at `/api/jigsaw_puzzle/sessions`. See
+`README.md` for the full REST endpoint list, Socket.IO event payloads,
+and env var reference.
 
-## Self-service kiosk + admin reporting (`online_rubuspuzzle`)
+## Admin auth (jigsaw_puzzle)
 
-This backend also serves a second, unrelated frontend: the
-self-service kiosk game at `online_rubuspuzzle` (`/api/players`,
-`/api/scores` — no facilitator, no Socket.IO, one attempt per staff
-ID, enforced by `Player.hasPlayed` and an atomic
-`findOneAndUpdate`/upsert in `player.service.ts`) and, on top of that,
-an admin reporting dashboard mounted at `online_rubuspuzzle`'s
-`/admin` route (`/api/admin/auth`, `/api/admin/reports`).
+Admin accounts are scoped to a persistent **Organization** — a client
+event, e.g. `safaricom-event` — not shared globally. The goal is that
+an admin logged in for one client's event structurally cannot see
+another client's data (a query filter, not a convention that could be
+forgotten in one route).
 
-**Auth is a bearer JWT, not a cookie.** The kiosk frontend and this
-API are deployed on different domains, so a session cookie would be
-third-party from the browser's perspective and liable to be blocked —
-the admin frontend stores the token client-side and sends
-`Authorization: Bearer <token>` instead. `middleware/requireAdmin.ts`
-verifies the token's signature/expiry only; it does not hit the DB per
-request, so a removed admin's already-issued tokens keep working until
-they expire (`JWT_EXPIRES_IN`) — an accepted trade for a short-lived
-event dashboard with no revocation list.
+`Organization` (`{ name, slug }`, `src/core/models/Organization.ts`)
+is shared across games since "who the client is" isn't game-specific.
+`games/jigsaw_puzzle/models/Admin.ts`
+(`{ username, passwordHash, organizationId }`) and
+`games/jigsaw_puzzle/middleware/requireAdmin.ts` are game-specific:
+`requireAdmin` verifies the bearer token and attaches the decoded
+payload to `res.locals.admin` rather than a global `req.admin` type
+augmentation, so a second game's admin middleware can never collide
+with this one's shape. The mongoose model name is prefixed
+(`JigsawPuzzleAdmin`, not `Admin`) because mongoose's model registry is
+global per process — an unprefixed name would collide if another game
+registers its own `Admin` model later. Follow that prefix convention
+for any future per-game model.
 
-**There is no HTTP endpoint to create an admin.** The only way in is
-`npm run seed:admin` (`src/scripts/seedAdmin.ts`), run directly on a
-machine with `MONGO_URI` access — this keeps account creation off the
-public internet entirely rather than gating a public endpoint behind a
-bootstrap secret.
+There is deliberately no HTTP endpoint to create an admin — the only
+way in is:
 
-**Reporting reads `Score`, not `Player`.** `Player` records a login
-attempt (including someone who logged in but never finished);
-`Score` is only written on a completed playthrough, so
-`report.service.ts`'s `listScores`/`getSummary`/`exportScoresCsv` all
-query `Score` — that's what "how many people played" means to the
-client.
+```bash
+npm run seed:admin:jigsaw_puzzle -- --org <slug> [--org-name <name>] --username <u> --password <p>
+```
 
-**Day filtering is fixed-offset, not the system timezone.** Africa/Nairobi
-is UTC+3 year-round (no DST), so `utils/dateRange.ts`'s
-`getDayRangeUtc("YYYY-MM-DD")` does exact arithmetic rather than
-depending on the host's timezone or a Mongo version with
-timezone-aware aggregation. `getSummary`'s `playDays` (per-day score
-counts) is computed the same way, via a `$group` aggregation shifting
-`createdAt` by the same fixed offset — this is intentionally *not*
-hardcoded to the event's actual Wed/Thu/Fri dates, so the admin
-dashboard's day-filter chips reflect whatever days the data actually
-has.
+run directly on a machine with `MONGO_URI` access. It finds-or-creates
+the `Organization` by slug — so onboarding a new client event is just
+seeding its first admin, no separate provisioning step — then upserts
+the `Admin` with a bcrypt hash and that `organizationId`.
+
+This is currently auth scaffolding only: no admin routes are mounted
+in `app.ts` yet, since jigsaw_puzzle has no admin dashboard or reports
+to protect. `requireAdmin` is ready to gate routes whenever that work
+happens — at that point, every admin-facing query must filter by
+`res.locals.admin.organizationId` for the isolation guarantee above to
+actually hold.
