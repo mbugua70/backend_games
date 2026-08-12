@@ -10,6 +10,7 @@ import { notFound } from "./core/middleware/notFound";
 import jigsawPuzzleAdminAuthRoutes from "./games/jigsaw_puzzle/routes/admin/auth.routes";
 import jigsawPuzzleAdminEventRoutes from "./games/jigsaw_puzzle/routes/admin/event.routes";
 import jigsawPuzzleAdminGameConfigRoutes from "./games/jigsaw_puzzle/routes/admin/gameConfig.routes";
+import jigsawPuzzleAdminGameSessionRoutes from "./games/jigsaw_puzzle/routes/admin/gameSession.routes";
 import jigsawPuzzleAdminPlayerRoutes from "./games/jigsaw_puzzle/routes/admin/player.routes";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
@@ -58,6 +59,10 @@ export const createApp = (): Express => {
   app.use(
     "/api/admin/jigsaw_puzzle/events/:eventId/players",
     jigsawPuzzleAdminPlayerRoutes
+  );
+  app.use(
+    "/api/admin/jigsaw_puzzle/events/:eventId/sessions",
+    jigsawPuzzleAdminGameSessionRoutes
   );
   app.use("/api/admin/jigsaw_puzzle/events", jigsawPuzzleAdminEventRoutes);
 
