@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as gameService from "../services/game.service";
-import { asyncHandler } from "../utils/asyncHandler";
-import { sendSuccess } from "../utils/response";
+import { asyncHandler } from "../../../core/utils/asyncHandler";
+import { sendSuccess } from "../../../core/utils/response";
 import {
   createSessionSchema,
   gameCodeParamSchema,

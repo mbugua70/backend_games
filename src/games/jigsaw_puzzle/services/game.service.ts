@@ -1,8 +1,8 @@
 import { POINTS_PER_CORRECT, QUESTION_DURATION_MS } from "../config/constants";
-import { logger } from "../logger/logger";
+import { logger } from "../../../core/logger/logger";
 import { GameSession, GameSessionDocument } from "../models/GameSession";
 import { GameStatePayload, GameStatus, Role } from "../types/game.types";
-import { AppError } from "../utils/AppError";
+import { AppError } from "../../../core/utils/AppError";
 import { generateUniqueGameCode } from "../utils/gameCode";
 
 const PUZZLE_ACTIVE_STATUSES: GameStatus[] = [

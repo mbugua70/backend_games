@@ -1,7 +1,7 @@
 import { Server as HttpServer } from "http";
 import { Server } from "socket.io";
-import { env } from "../config/env";
-import { logger } from "../logger/logger";
+import { env } from "../../../core/config/env";
+import { logger } from "../../../core/logger/logger";
 import {
   ClientToServerEvents,
   InterServerEvents,

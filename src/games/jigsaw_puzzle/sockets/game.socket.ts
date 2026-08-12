@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { MIN_RESUME_REMAINING_MS, QUESTION_DURATION_MS } from "../config/constants";
-import { logger } from "../logger/logger";
+import { logger } from "../../../core/logger/logger";
 import * as gameService from "../services/game.service";
 import {
   AckCallback,
@@ -10,7 +10,7 @@ import {
   SocketData,
 } from "../types/socket.types";
 import { GameStatePayload } from "../types/game.types";
-import { AppError } from "../utils/AppError";
+import { AppError } from "../../../core/utils/AppError";
 import {
   endGameSchema,
   joinSchema,

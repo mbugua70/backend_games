@@ -5,7 +5,7 @@ import {
   GAME_CODE_MAX_ATTEMPTS,
 } from "../config/constants";
 import { GameSession } from "../models/GameSession";
-import { AppError } from "./AppError";
+import { AppError } from "../../../core/utils/AppError";
 
 const generate = customAlphabet(GAME_CODE_ALPHABET, GAME_CODE_LENGTH);
 
