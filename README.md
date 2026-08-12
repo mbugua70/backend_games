@@ -3,10 +3,6 @@
 A single backend hosting multiple game backends behind one Express
 app and one deploy.
 
-The only game currently implemented is **jigsaw_puzzle**: a live,
-TV-based picture puzzle game show that syncs a TV display and a
-facilitator (control) client in real time over Socket.IO.
-
 ## Tech stack
 
 Node.js, Express, TypeScript, MongoDB/Mongoose, Socket.IO, Zod, Pino.
