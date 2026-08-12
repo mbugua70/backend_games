@@ -1,10 +1,10 @@
-import "./utils/cryptoPolyfill";
+import "./core/utils/cryptoPolyfill";
 import http from "http";
 import { createApp } from "./app";
-import { connectDatabase, disconnectDatabase } from "./config/database";
-import { env } from "./config/env";
-import { logger } from "./logger/logger";
-import { initSocket } from "./sockets";
+import { connectDatabase, disconnectDatabase } from "./core/config/database";
+import { env } from "./core/config/env";
+import { logger } from "./core/logger/logger";
+import { initSocket } from "./games/jigsaw_puzzle/sockets";
 
 const app = createApp();
 const server = http.createServer(app);
