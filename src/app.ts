@@ -7,7 +7,6 @@ import { env } from "./core/config/env";
 import { logger } from "./core/logger/logger";
 import { errorHandler } from "./core/middleware/errorHandler";
 import { notFound } from "./core/middleware/notFound";
-import jigsawPuzzleRoutes from "./games/jigsaw_puzzle/routes/game.routes";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 300;
@@ -43,8 +42,6 @@ export const createApp = (): Express => {
   app.get("/api/health", (_req, res) => {
     res.status(200).json({ status: "ok" });
   });
-
-  app.use("/api/jigsaw_puzzle/sessions", jigsawPuzzleRoutes);
 
   app.use(notFound);
   app.use(errorHandler);

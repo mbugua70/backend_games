@@ -4,11 +4,9 @@ import { createApp } from "./app";
 import { connectDatabase, disconnectDatabase } from "./core/config/database";
 import { env } from "./core/config/env";
 import { logger } from "./core/logger/logger";
-import { initSocket } from "./games/jigsaw_puzzle/sockets";
 
 const app = createApp();
 const server = http.createServer(app);
-const io = initSocket(server);
 
 const start = async (): Promise<void> => {
   await connectDatabase();
@@ -20,7 +18,7 @@ const start = async (): Promise<void> => {
 
 const shutdown = (signal: string): void => {
   logger.info(`Received ${signal}, shutting down gracefully`);
-  io.close(() => {
+  server.close(() => {
     void disconnectDatabase().finally(() => process.exit(0));
   });
 };

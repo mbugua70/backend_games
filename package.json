@@ -1,7 +1,7 @@
 {
   "name": "rubus_puzzle_backend",
   "version": "1.0.0",
-  "description": "Backend for the TV Picture Puzzle Game: live session state, Socket.IO sync between the TV display and facilitator.",
+  "description": "Backend hosting multiple event/activation game backends behind one Express app.",
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon --watch src --ext ts --exec tsx src/server.ts",
@@ -26,10 +26,8 @@
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.8.0",
-    "nanoid": "^3.3.16",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
-    "socket.io": "^4.8.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
