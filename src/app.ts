@@ -9,6 +9,7 @@ import { errorHandler } from "./core/middleware/errorHandler";
 import { notFound } from "./core/middleware/notFound";
 import jigsawPuzzleAdminAuthRoutes from "./games/jigsaw_puzzle/routes/admin/auth.routes";
 import jigsawPuzzleAdminEventRoutes from "./games/jigsaw_puzzle/routes/admin/event.routes";
+import jigsawPuzzleAdminGameConfigRoutes from "./games/jigsaw_puzzle/routes/admin/gameConfig.routes";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 300;
@@ -46,6 +47,13 @@ export const createApp = (): Express => {
   });
 
   app.use("/api/admin/jigsaw_puzzle/auth", jigsawPuzzleAdminAuthRoutes);
+  // Mounted before /events so a /:eventId/config request is matched here
+  // directly, rather than falling through the /events router's non-matching
+  // routes first.
+  app.use(
+    "/api/admin/jigsaw_puzzle/events/:eventId/config",
+    jigsawPuzzleAdminGameConfigRoutes
+  );
   app.use("/api/admin/jigsaw_puzzle/events", jigsawPuzzleAdminEventRoutes);
 
   app.use(notFound);
