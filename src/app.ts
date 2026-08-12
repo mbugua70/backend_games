@@ -7,6 +7,7 @@ import { env } from "./core/config/env";
 import { logger } from "./core/logger/logger";
 import { errorHandler } from "./core/middleware/errorHandler";
 import { notFound } from "./core/middleware/notFound";
+import jigsawPuzzleAdminAuthRoutes from "./games/jigsaw_puzzle/routes/admin/auth.routes";
 import jigsawPuzzleAdminEventRoutes from "./games/jigsaw_puzzle/routes/admin/event.routes";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
@@ -44,6 +45,7 @@ export const createApp = (): Express => {
     res.status(200).json({ status: "ok" });
   });
 
+  app.use("/api/admin/jigsaw_puzzle/auth", jigsawPuzzleAdminAuthRoutes);
   app.use("/api/admin/jigsaw_puzzle/events", jigsawPuzzleAdminEventRoutes);
 
   app.use(notFound);

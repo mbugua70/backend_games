@@ -1,10 +1,10 @@
 import { Router } from "express";
 import * as eventController from "../../controllers/event.controller";
+import { requireAdmin } from "../../middleware/requireAdmin";
 
-// TODO(step 10): gate this router with requireAdmin once admin auth is
-// reconciled with the Event entity (see games/jigsaw_puzzle/models/Admin.ts).
-// Wide open until then - dev-only, not deployed.
 const router = Router();
+
+router.use(requireAdmin);
 
 router.post("/", eventController.createEvent);
 router.get("/", eventController.listEvents);

@@ -31,6 +31,9 @@ const toEventPayload = (event: EventDocument): EventPayload => ({
   updatedAt: event.updatedAt,
 });
 
+// Event codes are globally unique, not per-organization: the public game
+// client looks an event up by code alone (e.g. from a scanned QR code),
+// with no organization context to disambiguate against.
 const assertCodeAvailable = async (code: string, excludeId?: string): Promise<void> => {
   const existing = await Event.findOne({
     code,
@@ -41,12 +44,16 @@ const assertCodeAvailable = async (code: string, excludeId?: string): Promise<vo
   }
 };
 
-export const createEvent = async (input: EventInput): Promise<EventPayload> => {
+export const createEvent = async (
+  organizationId: string,
+  input: EventInput
+): Promise<EventPayload> => {
   await assertCodeAvailable(input.code);
 
   const event = await Event.create({
     name: input.name,
     code: input.code,
+    organizationId,
     startDate: input.startDate,
     endDate: input.endDate,
     isActive: input.isActive ?? true,
@@ -55,13 +62,16 @@ export const createEvent = async (input: EventInput): Promise<EventPayload> => {
   return toEventPayload(event);
 };
 
-export const listEvents = async (): Promise<EventPayload[]> => {
-  const events = await Event.find().sort({ createdAt: -1 });
+export const listEvents = async (organizationId: string): Promise<EventPayload[]> => {
+  const events = await Event.find({ organizationId }).sort({ createdAt: -1 });
   return events.map(toEventPayload);
 };
 
-export const getEventById = async (id: string): Promise<EventPayload> => {
-  const event = await Event.findById(id);
+export const getEventById = async (
+  organizationId: string,
+  id: string
+): Promise<EventPayload> => {
+  const event = await Event.findOne({ _id: id, organizationId });
   if (!event) {
     throw new AppError("Event not found", 404);
   }
@@ -69,6 +79,7 @@ export const getEventById = async (id: string): Promise<EventPayload> => {
 };
 
 export const updateEvent = async (
+  organizationId: string,
   id: string,
   input: Partial<EventInput>
 ): Promise<EventPayload> => {
@@ -76,7 +87,9 @@ export const updateEvent = async (
     await assertCodeAvailable(input.code, id);
   }
 
-  const event = await Event.findByIdAndUpdate(id, input, { new: true });
+  const event = await Event.findOneAndUpdate({ _id: id, organizationId }, input, {
+    new: true,
+  });
   if (!event) {
     throw new AppError("Event not found", 404);
   }
@@ -86,8 +99,8 @@ export const updateEvent = async (
 // Deletes only the Event document - GameConfig/Players/GameSessions that
 // reference it are left as-is (no cascade), so historical session data for
 // an event is never silently wiped out by managing that event.
-export const deleteEvent = async (id: string): Promise<void> => {
-  const event = await Event.findByIdAndDelete(id);
+export const deleteEvent = async (organizationId: string, id: string): Promise<void> => {
+  const event = await Event.findOneAndDelete({ _id: id, organizationId });
   if (!event) {
     throw new AppError("Event not found", 404);
   }
