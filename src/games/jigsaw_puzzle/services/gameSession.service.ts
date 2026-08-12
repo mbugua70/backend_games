@@ -1,6 +1,11 @@
 import { AppError } from "../../../core/utils/AppError";
-import { DifficultySnapshot, GameSession, GameSessionDocument, GameSessionStatus } from "../models/GameSession";
-import { Event } from "../models/Event";
+import {
+  DifficultySnapshot,
+  GameSession,
+  GameSessionDocument,
+  GameSessionStatus,
+} from "../models/GameSession";
+import { assertEventOwnedByOrg } from "./eventAccess";
 
 export interface GameSessionPayload {
   id: string;
@@ -12,6 +17,7 @@ export interface GameSessionPayload {
   moves: number;
   hintsUsed: number;
   score: number | null;
+  durationSeconds: number | null;
   completedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -27,20 +33,11 @@ const toGameSessionPayload = (session: GameSessionDocument): GameSessionPayload 
   moves: session.moves,
   hintsUsed: session.hintsUsed,
   score: session.score,
+  durationSeconds: session.durationSeconds,
   completedAt: session.completedAt,
   createdAt: session.createdAt,
   updatedAt: session.updatedAt,
 });
-
-// Same isolation guarantee as event/gameConfig/player services: confirm the
-// event belongs to this admin's organization before any of its session data
-// is read.
-const assertEventOwnedByOrg = async (organizationId: string, eventId: string): Promise<void> => {
-  const event = await Event.findOne({ _id: eventId, organizationId });
-  if (!event) {
-    throw new AppError("Event not found", 404);
-  }
-};
 
 export const listSessionsByEvent = async (
   organizationId: string,

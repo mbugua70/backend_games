@@ -24,6 +24,10 @@ export interface GameSessionDocument extends Document {
   moves: number;
   hintsUsed: number;
   score: number | null;
+  // Stored (not derived from completedAt - createdAt on read) so the
+  // leaderboard's duration ASC tie-break can be a plain indexed sort
+  // instead of an aggregation on every query.
+  durationSeconds: number | null;
   completedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -59,12 +63,16 @@ const gameSessionSchema = new Schema<GameSessionDocument>(
     moves: { type: Number, required: true, default: 0, min: 0 },
     hintsUsed: { type: Number, required: true, default: 0, min: 0 },
     score: { type: Number, default: null, min: 0 },
+    durationSeconds: { type: Number, default: null, min: 0 },
     completedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
 
 gameSessionSchema.index({ eventId: 1, createdAt: -1 });
+// Matches the leaderboard's query shape: completed sessions for an event,
+// sorted score DESC / durationSeconds ASC.
+gameSessionSchema.index({ eventId: 1, status: 1, score: -1, durationSeconds: 1 });
 
 export const GameSession = model<GameSessionDocument>(
   "JigsawPuzzleGameSession",

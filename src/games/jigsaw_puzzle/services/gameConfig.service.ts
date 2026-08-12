@@ -1,11 +1,11 @@
 import { AppError } from "../../../core/utils/AppError";
-import { Event } from "../models/Event";
 import {
   DifficultyTier,
   GameConfig,
   GameConfigDocument,
   RegistrationField,
 } from "../models/GameConfig";
+import { assertEventOwnedByOrg } from "./eventAccess";
 
 interface GameConfigInput {
   difficultyMode: "fixed" | "player_choice";
@@ -35,16 +35,6 @@ const toGameConfigPayload = (config: GameConfigDocument): GameConfigPayload => (
   createdAt: config.createdAt,
   updatedAt: config.updatedAt,
 });
-
-// Confirms the event exists AND belongs to this admin's organization before
-// any GameConfig read/write, the same isolation guarantee event.service
-// enforces directly on its own queries.
-const assertEventOwnedByOrg = async (organizationId: string, eventId: string): Promise<void> => {
-  const event = await Event.findOne({ _id: eventId, organizationId });
-  if (!event) {
-    throw new AppError("Event not found", 404);
-  }
-};
 
 export const createGameConfig = async (
   organizationId: string,

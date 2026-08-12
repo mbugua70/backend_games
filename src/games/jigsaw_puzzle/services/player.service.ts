@@ -1,6 +1,6 @@
 import { AppError } from "../../../core/utils/AppError";
-import { Event } from "../models/Event";
 import { Player, PlayerDocument } from "../models/Player";
+import { assertEventOwnedByOrg } from "./eventAccess";
 
 export interface PlayerPayload {
   id: string;
@@ -17,16 +17,6 @@ const toPlayerPayload = (player: PlayerDocument): PlayerPayload => ({
   createdAt: player.createdAt,
   updatedAt: player.updatedAt,
 });
-
-// Same isolation guarantee as event.service/gameConfig.service: confirm the
-// event belongs to this admin's organization before any player data for it
-// is read.
-const assertEventOwnedByOrg = async (organizationId: string, eventId: string): Promise<void> => {
-  const event = await Event.findOne({ _id: eventId, organizationId });
-  if (!event) {
-    throw new AppError("Event not found", 404);
-  }
-};
 
 export const listPlayersByEvent = async (
   organizationId: string,
