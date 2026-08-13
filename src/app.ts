@@ -9,6 +9,7 @@ import { errorHandler } from "./core/middleware/errorHandler";
 import { notFound } from "./core/middleware/notFound";
 import jigsawPuzzleAdminAuthRoutes from "./games/jigsaw_puzzle/routes/admin/auth.routes";
 import jigsawPuzzleAdminEventRoutes from "./games/jigsaw_puzzle/routes/admin/event.routes";
+import jigsawPuzzleAdminEventStatsRoutes from "./games/jigsaw_puzzle/routes/admin/eventStats.routes";
 import jigsawPuzzleAdminGameConfigRoutes from "./games/jigsaw_puzzle/routes/admin/gameConfig.routes";
 import jigsawPuzzleAdminGameSessionRoutes from "./games/jigsaw_puzzle/routes/admin/gameSession.routes";
 import jigsawPuzzleAdminLeaderboardRoutes from "./games/jigsaw_puzzle/routes/admin/leaderboard.routes";
@@ -68,6 +69,10 @@ export const createApp = (): Express => {
   app.use(
     "/api/admin/jigsaw_puzzle/events/:eventId/leaderboard",
     jigsawPuzzleAdminLeaderboardRoutes
+  );
+  app.use(
+    "/api/admin/jigsaw_puzzle/events/:eventId/stats",
+    jigsawPuzzleAdminEventStatsRoutes
   );
   app.use("/api/admin/jigsaw_puzzle/events", jigsawPuzzleAdminEventRoutes);
 
