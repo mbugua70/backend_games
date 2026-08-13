@@ -52,17 +52,22 @@ export const createGameConfig = async (
   return toGameConfigPayload(config);
 };
 
-export const getGameConfigByEvent = async (
-  organizationId: string,
-  eventId: string
-): Promise<GameConfigPayload> => {
-  await assertEventOwnedByOrg(organizationId, eventId);
-
+// Shared by the admin endpoint (org-scoped, below) and the public game
+// endpoint (step 9), same as leaderboard.service's getLeaderboard split.
+export const getGameConfigByEventId = async (eventId: string): Promise<GameConfigPayload> => {
   const config = await GameConfig.findOne({ eventId });
   if (!config) {
     throw new AppError("Game config not found for this event", 404);
   }
   return toGameConfigPayload(config);
+};
+
+export const getGameConfigByEvent = async (
+  organizationId: string,
+  eventId: string
+): Promise<GameConfigPayload> => {
+  await assertEventOwnedByOrg(organizationId, eventId);
+  return getGameConfigByEventId(eventId);
 };
 
 export const updateGameConfig = async (

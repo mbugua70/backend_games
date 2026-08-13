@@ -1,11 +1,15 @@
 import { AppError } from "../../../core/utils/AppError";
+import { Event } from "../models/Event";
+import { DifficultyTier, GameConfig, GameConfigDocument } from "../models/GameConfig";
 import {
   DifficultySnapshot,
   GameSession,
   GameSessionDocument,
   GameSessionStatus,
 } from "../models/GameSession";
+import { Player } from "../models/Player";
 import { assertEventOwnedByOrg } from "./eventAccess";
+import { calculateScore } from "./scoring.service";
 
 export interface GameSessionPayload {
   id: string;
@@ -38,6 +42,105 @@ const toGameSessionPayload = (session: GameSessionDocument): GameSessionPayload 
   createdAt: session.createdAt,
   updatedAt: session.updatedAt,
 });
+
+// "fixed" mode always uses defaultDifficultyKey and ignores whatever the
+// client sent - a "player_choice" event requires a valid key. Either way,
+// this is the only place a difficulty tier gets picked, so a frontend can
+// never talk a fixed event into a different tier than the admin configured.
+const resolveDifficulty = (
+  config: GameConfigDocument,
+  requestedDifficultyKey?: string
+): DifficultyTier => {
+  const key =
+    config.difficultyMode === "player_choice" ? requestedDifficultyKey : config.defaultDifficultyKey;
+
+  if (!key) {
+    throw new AppError("difficultyKey is required for this event", 400);
+  }
+
+  const tier = config.difficultyTiers.find((candidate) => candidate.key === key);
+  if (!tier) {
+    throw new AppError(`Unknown difficulty "${key}"`, 400);
+  }
+  return tier;
+};
+
+// Public - starts a session for a player who has already registered for
+// this event. eventCode is the public lookup key; playerId is scoped to
+// that same event so one event's player can't start a session on another.
+export const startSession = async (
+  eventCode: string,
+  playerId: string,
+  requestedDifficultyKey?: string
+): Promise<GameSessionPayload> => {
+  const event = await Event.findOne({ code: eventCode });
+  if (!event) {
+    throw new AppError("Event not found", 404);
+  }
+
+  const config = await GameConfig.findOne({ eventId: event._id });
+  if (!config) {
+    throw new AppError("Game config not found for this event", 404);
+  }
+
+  const player = await Player.findOne({ _id: playerId, eventId: event._id });
+  if (!player) {
+    throw new AppError("Player not found for this event", 404);
+  }
+
+  const tier = resolveDifficulty(config, requestedDifficultyKey);
+
+  const session = await GameSession.create({
+    eventId: event._id,
+    playerId: player._id,
+    difficulty: {
+      key: tier.key,
+      label: tier.label,
+      pieceCount: tier.pieceCount,
+      timeLimitSeconds: tier.timeLimitSeconds,
+    },
+  });
+
+  return toGameSessionPayload(session);
+};
+
+// Public - the client submits final totals (moves, hintsUsed) once, rather
+// than incrementing them over a live connection; durationSeconds and score
+// are both computed server-side so neither can be spoofed by the client.
+export const completeSession = async (
+  sessionUuid: string,
+  moves: number,
+  hintsUsed: number
+): Promise<GameSessionPayload> => {
+  const session = await GameSession.findOne({ uuid: sessionUuid });
+  if (!session) {
+    throw new AppError("Game session not found", 404);
+  }
+  if (session.status === "completed") {
+    throw new AppError("This session has already been completed", 409);
+  }
+
+  const durationSeconds = Math.max(
+    0,
+    Math.round((Date.now() - session.createdAt.getTime()) / 1000)
+  );
+  const score = calculateScore({
+    pieceCount: session.difficulty.pieceCount,
+    durationSeconds,
+    moves,
+    hintsUsed,
+  });
+
+  session.moves = moves;
+  session.hintsUsed = hintsUsed;
+  session.durationSeconds = durationSeconds;
+  session.score = score;
+  session.status = "completed";
+  session.completedAt = new Date();
+  await session.save();
+
+  return toGameSessionPayload(session);
+};
 
 export const listSessionsByEvent = async (
   organizationId: string,

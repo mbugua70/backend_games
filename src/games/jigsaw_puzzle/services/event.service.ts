@@ -67,6 +67,16 @@ export const listEvents = async (organizationId: string): Promise<EventPayload[]
   return events.map(toEventPayload);
 };
 
+// Public lookup key for the game client (e.g. from a scanned QR code) - no
+// organizationId filter, since the client has no admin session to scope by.
+export const getEventByCode = async (code: string): Promise<EventPayload> => {
+  const event = await Event.findOne({ code });
+  if (!event) {
+    throw new AppError("Event not found", 404);
+  }
+  return toEventPayload(event);
+};
+
 export const getEventById = async (
   organizationId: string,
   id: string
