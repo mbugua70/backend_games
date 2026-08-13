@@ -9,6 +9,7 @@ import {
 } from "../models/GameSession";
 import { Player } from "../models/Player";
 import { assertEventOwnedByOrg } from "./eventAccess";
+import { assertEventIsLive } from "./event.service";
 import { calculateScore } from "./scoring.service";
 
 export interface GameSessionPayload {
@@ -77,6 +78,7 @@ export const startSession = async (
   if (!event) {
     throw new AppError("Event not found", 404);
   }
+  assertEventIsLive(event);
 
   const config = await GameConfig.findOne({ eventId: event._id });
   if (!config) {
@@ -107,6 +109,9 @@ export const startSession = async (
 // Public - the client submits final totals (moves, hintsUsed) once, rather
 // than incrementing them over a live connection; durationSeconds and score
 // are both computed server-side so neither can be spoofed by the client.
+// Deliberately doesn't re-check assertEventIsLive: a session already started
+// before the event ended should still be allowed to finish, not get stranded
+// mid-play by the clock running out underneath it.
 export const completeSession = async (
   sessionUuid: string,
   moves: number,

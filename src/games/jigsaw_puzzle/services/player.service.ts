@@ -3,6 +3,7 @@ import { Event } from "../models/Event";
 import { GameConfig, RegistrationField } from "../models/GameConfig";
 import { Player, PlayerDocument } from "../models/Player";
 import { assertEventOwnedByOrg } from "./eventAccess";
+import { assertEventIsLive } from "./event.service";
 
 export interface PlayerPayload {
   id: string;
@@ -55,6 +56,7 @@ export const registerPlayer = async (
   if (!event) {
     throw new AppError("Event not found", 404);
   }
+  assertEventIsLive(event);
 
   const config = await GameConfig.findOne({ eventId: event._id });
   if (!config) {

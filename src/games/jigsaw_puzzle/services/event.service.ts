@@ -77,6 +77,22 @@ export const getEventByCode = async (code: string): Promise<EventPayload> => {
   return toEventPayload(event);
 };
 
+// Gates the public write actions (registration, starting a session) - GET
+// /events/:code deliberately skips this so the client can still fetch the
+// event and show a "not live" message instead of a bare 404.
+export const assertEventIsLive = (event: EventDocument): void => {
+  if (!event.isActive) {
+    throw new AppError("This event is not currently active", 403);
+  }
+  const now = new Date();
+  if (now < event.startDate) {
+    throw new AppError("This event has not started yet", 403);
+  }
+  if (now > event.endDate) {
+    throw new AppError("This event has ended", 403);
+  }
+};
+
 export const getEventById = async (
   organizationId: string,
   id: string
