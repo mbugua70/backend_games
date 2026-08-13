@@ -33,7 +33,12 @@ const toGameSessionPayload = (session: GameSessionDocument): GameSessionPayload 
   uuid: session.uuid,
   eventId: session.eventId.toString(),
   playerId: session.playerId ? session.playerId.toString() : null,
-  difficulty: session.difficulty,
+  difficulty: {
+    key: session.difficulty.key,
+    label: session.difficulty.label,
+    pieceCount: session.difficulty.pieceCount,
+    timeLimitSeconds: session.difficulty.timeLimitSeconds,
+  },
   status: session.status,
   moves: session.moves,
   hintsUsed: session.hintsUsed,
