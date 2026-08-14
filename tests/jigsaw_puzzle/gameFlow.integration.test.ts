@@ -29,7 +29,12 @@ describe("jigsaw_puzzle critical game flow", () => {
   });
 
   const createLiveEventWithConfig = async (
-    overrides: { difficultyMode?: "fixed" | "player_choice"; isActive?: boolean; code: string }
+    overrides: {
+      difficultyMode?: "fixed" | "player_choice";
+      isActive?: boolean;
+      code: string;
+      playerMode?: "guest" | "registered";
+    }
   ) => {
     const now = Date.now();
     const event = await eventService.createEvent(organizationId, {
@@ -57,6 +62,14 @@ describe("jigsaw_puzzle critical game flow", () => {
           options: ["red", "blue"],
         },
       ],
+      puzzleSource: "camera",
+      puzzleImageKey: null,
+      playerMode: overrides.playerMode ?? "registered",
+      timerEnabled: true,
+      hintsEnabled: true,
+      maxHints: 5,
+      leaderboardEnabled: true,
+      showScore: true,
     });
 
     return { event, config };
@@ -153,6 +166,37 @@ describe("jigsaw_puzzle critical game flow", () => {
     await expect(
       gameSessionService.completeSession(session.uuid, moves, hintsUsed)
     ).rejects.toThrow(/already been completed/);
+  });
+
+  it("starts a guest session with no playerId, and rejects a missing playerId when registered", async () => {
+    const { event: guestEvent } = await createLiveEventWithConfig({
+      code: "flow-guest",
+      playerMode: "guest",
+    });
+    const session = await gameSessionService.startSession(guestEvent.code, undefined, "easy");
+    expect(session.playerId).toBeNull();
+
+    const { event: registeredEvent } = await createLiveEventWithConfig({
+      code: "flow-registered",
+      playerMode: "registered",
+    });
+    await expect(
+      gameSessionService.startSession(registeredEvent.code, undefined, "easy")
+    ).rejects.toThrow(/playerId is required/);
+  });
+
+  it("rejects completing a session with more hints than the event's maxHints", async () => {
+    const { event } = await createLiveEventWithConfig({ code: "flow-hints" });
+    const player = await playerService.registerPlayer(event.code, {
+      fullName: "Hint Tester",
+      team: "red",
+    });
+    const session = await gameSessionService.startSession(event.code, player.id, "easy");
+
+    // createLiveEventWithConfig sets maxHints: 5.
+    await expect(
+      gameSessionService.completeSession(session.uuid, 10, 6)
+    ).rejects.toThrow(/hintsUsed cannot exceed maxHints/);
   });
 
   it("rejects registration and session start on an inactive event", async () => {

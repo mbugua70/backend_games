@@ -52,6 +52,16 @@ export const gameConfigSchema = z
     difficultyTiers: z.array(difficultyTierSchema).min(1),
     defaultDifficultyKey: z.string().trim().min(1),
     registrationFields: z.array(registrationFieldSchema).default([]),
+    puzzleSource: z.enum(["camera", "uploaded_image"]),
+    // The backend never stores/serves the image itself - this is just a
+    // label the frontend's own bundled assets resolve independently.
+    puzzleImageKey: z.string().trim().min(1).nullable().default(null),
+    playerMode: z.enum(["guest", "registered"]),
+    timerEnabled: z.boolean(),
+    hintsEnabled: z.boolean(),
+    maxHints: z.number().int().min(0).default(0),
+    leaderboardEnabled: z.boolean(),
+    showScore: z.boolean(),
   })
   .superRefine((config, ctx) => {
     assertUniqueKeys(config.difficultyTiers, ctx, "difficultyTiers");
@@ -61,6 +71,20 @@ export const gameConfigSchema = z
         code: "custom",
         path: ["defaultDifficultyKey"],
         message: "defaultDifficultyKey must match one of difficultyTiers[].key",
+      });
+    }
+    if (config.puzzleSource === "uploaded_image" && !config.puzzleImageKey) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["puzzleImageKey"],
+        message: "puzzleImageKey is required when puzzleSource is \"uploaded_image\"",
+      });
+    }
+    if (config.puzzleSource === "camera" && config.puzzleImageKey) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["puzzleImageKey"],
+        message: "puzzleImageKey is only valid when puzzleSource is \"uploaded_image\"",
       });
     }
   });

@@ -71,12 +71,18 @@ const resolveDifficulty = (
   return tier;
 };
 
-// Public - starts a session for a player who has already registered for
-// this event. eventCode is the public lookup key; playerId is scoped to
-// that same event so one event's player can't start a session on another.
+// Public - starts a session for this event. eventCode is the public lookup
+// key; playerId (when sent) is scoped to that same event so one event's
+// player can't start a session on another.
+//
+// "registered" mode requires a real, already-registered playerId, same as
+// before. "guest" mode makes it optional - the resulting session's playerId
+// is null unless one was sent anyway (a guest event doesn't forbid
+// registration, it just doesn't require it). Which mode applies is read
+// from GameConfig, never trusted from the client.
 export const startSession = async (
   eventCode: string,
-  playerId: string,
+  playerId: string | undefined,
   requestedDifficultyKey?: string
 ): Promise<GameSessionPayload> => {
   const event = await Event.findOne({ code: eventCode });
@@ -90,16 +96,23 @@ export const startSession = async (
     throw new AppError("Game config not found for this event", 404);
   }
 
-  const player = await Player.findOne({ _id: playerId, eventId: event._id });
-  if (!player) {
-    throw new AppError("Player not found for this event", 404);
+  if (config.playerMode === "registered" && !playerId) {
+    throw new AppError("playerId is required for this event", 400);
+  }
+
+  let player = null;
+  if (playerId) {
+    player = await Player.findOne({ _id: playerId, eventId: event._id });
+    if (!player) {
+      throw new AppError("Player not found for this event", 404);
+    }
   }
 
   const tier = resolveDifficulty(config, requestedDifficultyKey);
 
   const session = await GameSession.create({
     eventId: event._id,
-    playerId: player._id,
+    playerId: player ? player._id : null,
     difficulty: {
       key: tier.key,
       label: tier.label,
@@ -128,6 +141,11 @@ export const completeSession = async (
   }
   if (session.status === "completed") {
     throw new AppError("This session has already been completed", 409);
+  }
+
+  const config = await GameConfig.findOne({ eventId: session.eventId });
+  if (config?.hintsEnabled && hintsUsed > config.maxHints) {
+    throw new AppError(`hintsUsed cannot exceed maxHints (${config.maxHints})`, 400);
   }
 
   const durationSeconds = Math.max(

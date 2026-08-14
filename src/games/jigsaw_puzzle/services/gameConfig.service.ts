@@ -3,6 +3,8 @@ import {
   DifficultyTier,
   GameConfig,
   GameConfigDocument,
+  PlayerMode,
+  PuzzleSource,
   RegistrationField,
 } from "../models/GameConfig";
 import { assertEventOwnedByOrg } from "./eventAccess";
@@ -12,6 +14,14 @@ interface GameConfigInput {
   difficultyTiers: DifficultyTier[];
   defaultDifficultyKey: string;
   registrationFields: RegistrationField[];
+  puzzleSource: PuzzleSource;
+  puzzleImageKey: string | null;
+  playerMode: PlayerMode;
+  timerEnabled: boolean;
+  hintsEnabled: boolean;
+  maxHints: number;
+  leaderboardEnabled: boolean;
+  showScore: boolean;
 }
 
 export interface GameConfigPayload {
@@ -21,6 +31,14 @@ export interface GameConfigPayload {
   difficultyTiers: DifficultyTier[];
   defaultDifficultyKey: string;
   registrationFields: RegistrationField[];
+  puzzleSource: PuzzleSource;
+  puzzleImageKey: string | null;
+  playerMode: PlayerMode;
+  timerEnabled: boolean;
+  hintsEnabled: boolean;
+  maxHints: number;
+  leaderboardEnabled: boolean;
+  showScore: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,6 +50,14 @@ const toGameConfigPayload = (config: GameConfigDocument): GameConfigPayload => (
   difficultyTiers: config.difficultyTiers,
   defaultDifficultyKey: config.defaultDifficultyKey,
   registrationFields: config.registrationFields,
+  puzzleSource: config.puzzleSource,
+  puzzleImageKey: config.puzzleImageKey,
+  playerMode: config.playerMode,
+  timerEnabled: config.timerEnabled,
+  hintsEnabled: config.hintsEnabled,
+  maxHints: config.maxHints,
+  leaderboardEnabled: config.leaderboardEnabled,
+  showScore: config.showScore,
   createdAt: config.createdAt,
   updatedAt: config.updatedAt,
 });
