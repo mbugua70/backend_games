@@ -3,10 +3,12 @@ import express, { Express } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
+import swaggerUi from "swagger-ui-express";
 import { env } from "./core/config/env";
 import { logger } from "./core/logger/logger";
 import { errorHandler } from "./core/middleware/errorHandler";
 import { notFound } from "./core/middleware/notFound";
+import { jigsawPuzzleOpenApiDocument } from "./games/jigsaw_puzzle/openapi/document";
 import jigsawPuzzleAdminAuthRoutes from "./games/jigsaw_puzzle/routes/admin/auth.routes";
 import jigsawPuzzleAdminEventRoutes from "./games/jigsaw_puzzle/routes/admin/event.routes";
 import jigsawPuzzleAdminEventStatsRoutes from "./games/jigsaw_puzzle/routes/admin/eventStats.routes";
@@ -78,6 +80,8 @@ export const createApp = (): Express => {
   app.use("/api/admin/jigsaw_puzzle/events", jigsawPuzzleAdminEventRoutes);
 
   app.use("/api/jigsaw_puzzle", jigsawPuzzleGameRoutes);
+
+  app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(jigsawPuzzleOpenApiDocument));
 
   app.use(notFound);
   app.use(errorHandler);
