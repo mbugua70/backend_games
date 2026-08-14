@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { logger } from "../logger/logger";
 import { AppError } from "../utils/AppError";
+import { sendError } from "../utils/response";
 
 export const errorHandler = (
   err: unknown,
@@ -33,8 +34,5 @@ export const errorHandler = (
     logger.warn(logPayload, message);
   }
 
-  res.status(statusCode).json({
-    success: false,
-    message,
-  });
+  sendError(res, message, statusCode);
 };
