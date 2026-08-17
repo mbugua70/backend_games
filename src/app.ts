@@ -17,6 +17,18 @@ import jigsawPuzzleAdminGameSessionRoutes from "./games/jigsaw_puzzle/routes/adm
 import jigsawPuzzleAdminLeaderboardRoutes from "./games/jigsaw_puzzle/routes/admin/leaderboard.routes";
 import jigsawPuzzleAdminPlayerRoutes from "./games/jigsaw_puzzle/routes/admin/player.routes";
 import jigsawPuzzleGameRoutes from "./games/jigsaw_puzzle/routes/game/game.routes";
+import { arBasketballOpenApiDocument } from "./games/ar_basketball/openapi/document";
+import arBasketballAdminAuthRoutes from "./games/ar_basketball/routes/admin/auth.routes";
+import arBasketballAdminEventRoutes from "./games/ar_basketball/routes/admin/event.routes";
+import arBasketballAdminEventBrandingRoutes from "./games/ar_basketball/routes/admin/eventBranding.routes";
+import arBasketballAdminEventStatsRoutes from "./games/ar_basketball/routes/admin/eventStats.routes";
+import arBasketballAdminGameConfigRoutes from "./games/ar_basketball/routes/admin/gameConfig.routes";
+import arBasketballAdminGameSessionRoutes from "./games/ar_basketball/routes/admin/gameSession.routes";
+import arBasketballAdminLeaderboardRoutes from "./games/ar_basketball/routes/admin/leaderboard.routes";
+import arBasketballAdminLeaderboardConfigRoutes from "./games/ar_basketball/routes/admin/leaderboardConfig.routes";
+import arBasketballAdminPlayerRoutes from "./games/ar_basketball/routes/admin/player.routes";
+import arBasketballAdminRegistrationConfigRoutes from "./games/ar_basketball/routes/admin/registrationConfig.routes";
+import arBasketballGameRoutes from "./games/ar_basketball/routes/game/game.routes";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 300;
@@ -81,7 +93,54 @@ export const createApp = (): Express => {
 
   app.use("/api/jigsaw_puzzle", jigsawPuzzleGameRoutes);
 
+  app.use("/api/admin/ar_basketball/v1/auth", arBasketballAdminAuthRoutes);
+  // Mounted before /events so a /:eventId/... request is matched here
+  // directly, rather than falling through the /events router's
+  // non-matching routes first.
+  app.use(
+    "/api/admin/ar_basketball/v1/events/:eventId/branding",
+    arBasketballAdminEventBrandingRoutes
+  );
+  app.use(
+    "/api/admin/ar_basketball/v1/events/:eventId/registration-config",
+    arBasketballAdminRegistrationConfigRoutes
+  );
+  app.use(
+    "/api/admin/ar_basketball/v1/events/:eventId/game-config",
+    arBasketballAdminGameConfigRoutes
+  );
+  app.use(
+    "/api/admin/ar_basketball/v1/events/:eventId/leaderboard-config",
+    arBasketballAdminLeaderboardConfigRoutes
+  );
+  app.use(
+    "/api/admin/ar_basketball/v1/events/:eventId/players",
+    arBasketballAdminPlayerRoutes
+  );
+  app.use(
+    "/api/admin/ar_basketball/v1/events/:eventId/sessions",
+    arBasketballAdminGameSessionRoutes
+  );
+  app.use(
+    "/api/admin/ar_basketball/v1/events/:eventId/leaderboard",
+    arBasketballAdminLeaderboardRoutes
+  );
+  app.use(
+    "/api/admin/ar_basketball/v1/events/:eventId/stats",
+    arBasketballAdminEventStatsRoutes
+  );
+  app.use("/api/admin/ar_basketball/v1/events", arBasketballAdminEventRoutes);
+
+  app.use("/api/ar_basketball/v1", arBasketballGameRoutes);
+
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(jigsawPuzzleOpenApiDocument));
+  // Separate path from jigsaw_puzzle's /api/docs mount above - each game
+  // gets its own generated OpenAPI document rather than a merged one.
+  app.use(
+    "/api/docs/ar_basketball",
+    swaggerUi.serveFiles(arBasketballOpenApiDocument),
+    swaggerUi.setup(arBasketballOpenApiDocument)
+  );
 
   app.use(notFound);
   app.use(errorHandler);
