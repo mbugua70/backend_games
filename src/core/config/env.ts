@@ -18,6 +18,7 @@ const envSchema = z.object({
   // to be blocked by the browser.
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   JWT_EXPIRES_IN: z.string().min(1).default("12h"),
+  ADMIN_REFRESH_TOKEN_EXPIRES_IN: z.string().min(1).default("7d"),
 });
 
 const parsed = envSchema.safeParse(process.env);
