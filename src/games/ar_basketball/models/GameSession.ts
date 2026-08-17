@@ -22,15 +22,22 @@ export interface GameConfigSnapshot {
 }
 
 // Snapshotted from the registered Player at session-start time - the
-// leaderboard/analytics read path never needs to join back to Player, and
-// maskedPhone is pre-masked so the raw number is never stored here.
+// leaderboard/analytics read path never needs to join back to Player.
+// maskedPhone is pre-masked so the raw number is never stored here;
+// displayName is resolved from RegistrationConfig.nameFieldKey, since
+// registration fields are admin-defined and can't be assumed to have a
+// fixed "name" key.
 export interface PlayerSnapshot {
   registrationData: Record<string, string>;
+  displayName: string | null;
   maskedPhone: string | null;
 }
 
 export interface Shot {
-  _id: Types.ObjectId;
+  // Optional here because plain (not-yet-saved) shot objects assigned to
+  // this array don't have one yet - Mongoose generates it on save, same as
+  // any other subdocument _id.
+  _id?: Types.ObjectId;
   result: ShotResult;
   touchedRim: boolean;
   touchedBackboard: boolean;
@@ -96,6 +103,7 @@ const gameConfigSnapshotSchema = new Schema<GameConfigSnapshot>(
 const playerSnapshotSchema = new Schema<PlayerSnapshot>(
   {
     registrationData: { type: Schema.Types.Mixed, required: true, default: {} },
+    displayName: { type: String, default: null },
     maskedPhone: { type: String, default: null },
   },
   { _id: false }

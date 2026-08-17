@@ -16,10 +16,14 @@ export interface RegistrationConfigDocument extends Document {
   eventId: Types.ObjectId;
   playerMode: PlayerMode;
   fields: RegistrationField[];
-  // Must match the `key` of a fields[] entry whose type is "phone" when
-  // non-null - enforced in the validator/service layer (not the schema),
-  // since the check depends on the sibling fields array.
+  // Both must match the `key` of a fields[] entry when non-null - enforced
+  // in the validator/service layer (not the schema), since the check
+  // depends on the sibling fields array. phoneFieldKey drives leaderboard
+  // phone masking; nameFieldKey drives the leaderboard's display name
+  // (fields are fully admin-defined per event, so neither can be assumed
+  // to be a fixed key like "name"/"phone").
   phoneFieldKey: string | null;
+  nameFieldKey: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +49,7 @@ const registrationConfigSchema = new Schema<RegistrationConfigDocument>(
     playerMode: { type: String, required: true, enum: ["guest", "registered"] },
     fields: { type: [registrationFieldSchema], required: true, default: [] },
     phoneFieldKey: { type: String, default: null, trim: true },
+    nameFieldKey: { type: String, default: null, trim: true },
   },
   { timestamps: true }
 );
