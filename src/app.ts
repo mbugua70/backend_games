@@ -65,6 +65,8 @@ export const createApp = (): Express => {
     res.status(200).json({ status: "ok" });
   });
 
+  // Endpoints for jigsaw_puzzle game
+
   app.use("/api/admin/jigsaw_puzzle/auth", jigsawPuzzleAdminAuthRoutes);
   // Mounted before /events so a /:eventId/config request is matched here
   // directly, rather than falling through the /events router's non-matching
@@ -92,6 +94,8 @@ export const createApp = (): Express => {
   app.use("/api/admin/jigsaw_puzzle/events", jigsawPuzzleAdminEventRoutes);
 
   app.use("/api/jigsaw_puzzle", jigsawPuzzleGameRoutes);
+
+  // Endpoints for ar_basketball game
 
   app.use("/api/admin/ar_basketball/v1/auth", arBasketballAdminAuthRoutes);
   // Mounted before /events so a /:eventId/... request is matched here
