@@ -19,6 +19,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   JWT_EXPIRES_IN: z.string().min(1).default("12h"),
   ADMIN_REFRESH_TOKEN_EXPIRES_IN: z.string().min(1).default("7d"),
+  // Shared secret the feedback module checks against the x-api-key header
+  // (src/games/feedback/middleware/requireApiKey.ts) - that module has no
+  // JWT/admin login of its own, so this is its only gate.
+  FEEDBACK_API_KEY: z.string().min(20, "FEEDBACK_API_KEY must be at least 20 characters"),
 });
 
 const parsed = envSchema.safeParse(process.env);

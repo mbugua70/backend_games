@@ -29,6 +29,7 @@ import arBasketballAdminLeaderboardConfigRoutes from "./games/ar_basketball/rout
 import arBasketballAdminPlayerRoutes from "./games/ar_basketball/routes/admin/player.routes";
 import arBasketballAdminRegistrationConfigRoutes from "./games/ar_basketball/routes/admin/registrationConfig.routes";
 import arBasketballGameRoutes from "./games/ar_basketball/routes/game/game.routes";
+import feedbackRoutes from "./games/feedback/routes/feedback.routes";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 300;
@@ -136,6 +137,10 @@ export const createApp = (): Express => {
   app.use("/api/admin/ar_basketball/v1/events", arBasketballAdminEventRoutes);
 
   app.use("/api/ar_basketball/v1", arBasketballGameRoutes);
+
+  // Not a game - customer feedback for the website, gated by a static
+  // x-api-key header rather than admin JWT auth (see CLAUDE.md).
+  app.use("/api/feedback", feedbackRoutes);
 
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(jigsawPuzzleOpenApiDocument));
   // Separate path from jigsaw_puzzle's /api/docs mount above - each game
