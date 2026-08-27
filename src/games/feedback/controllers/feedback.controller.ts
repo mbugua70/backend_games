@@ -25,3 +25,9 @@ export const getFeedback = asyncHandler(async (req: Request, res: Response): Pro
   const feedback = await feedbackService.getFeedbackById(feedbackId);
   sendSuccess(res, feedback);
 });
+
+export const deleteFeedback = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { feedbackId } = feedbackIdParamSchema.parse(req.params);
+  await feedbackService.deleteFeedbackById(feedbackId);
+  sendSuccess(res, { id: feedbackId }, "Feedback deleted");
+});

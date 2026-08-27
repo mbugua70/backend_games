@@ -9,5 +9,6 @@ router.use(requireApiKey);
 router.post("/", feedbackController.submitFeedback);
 router.get("/", feedbackController.listFeedback);
 router.get("/:feedbackId", feedbackController.getFeedback);
+router.delete("/:feedbackId", feedbackController.deleteFeedback);
 
 export default router;
