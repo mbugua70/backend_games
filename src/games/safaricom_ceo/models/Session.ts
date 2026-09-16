@@ -3,7 +3,8 @@ import "../../../core/models/Organization";
 import { Dimension, DIMENSIONS } from "./Question";
 import "./Participant";
 
-export type SessionStatus = "IN_PROGRESS" | "COMPLETED" | "ABANDONED";
+export const SESSION_STATUSES = ["IN_PROGRESS", "COMPLETED", "ABANDONED"] as const;
+export type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 // Embedded on the session (like GameSession.shots elsewhere in this repo)
 // rather than a separate collection, so "one response per question" is a
@@ -56,7 +57,7 @@ const sessionSchema = new Schema<SessionDocument>(
     },
     status: {
       type: String,
-      enum: ["IN_PROGRESS", "COMPLETED", "ABANDONED"],
+      enum: SESSION_STATUSES,
       required: true,
       default: "IN_PROGRESS",
     },

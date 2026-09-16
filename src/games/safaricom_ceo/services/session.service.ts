@@ -1,7 +1,8 @@
-import { Types } from "mongoose";
+import { QueryFilter, Types } from "mongoose";
 import { logger } from "../../../core/logger/logger";
 import { AppError } from "../../../core/utils/AppError";
-import { Question } from "../models/Question";
+import { Participant } from "../models/Participant";
+import { Dimension, Question } from "../models/Question";
 import { Profile } from "../models/Profile";
 import { Session, SessionDocument, SessionStatus } from "../models/Session";
 import { SessionResult, SessionResultDocument } from "../models/SessionResult";
@@ -264,4 +265,192 @@ export const getResult = async (sessionId: string): Promise<SessionResultPayload
     throw new AppError("Result not found for this session", 404);
   }
   return toResultPayload(result);
+};
+
+// ---- Admin (includes participant PII - never reused for a public route.
+// "Aggregate analytics must not expose phone or email" only constrains
+// services/analytics.service.ts, not this authenticated, single-record
+// admin view, where an org's own admin needs contact details to follow up
+// with a lead.) ----
+
+export interface AdminParticipantSummary {
+  id: string;
+  businessName: string;
+  phoneNumber: string;
+  email: string;
+  businessType: string;
+  numberOfEmployees: string;
+}
+
+export interface AdminSessionListItemPayload {
+  id: string;
+  participant: AdminParticipantSummary | null;
+  status: SessionStatus;
+  startedAt: Date;
+  completedAt: Date | null;
+  totalScore: number | null;
+  averageScore: number | null;
+  profileCode: string | null;
+}
+
+export interface AdminSessionResponsePayload {
+  questionId: string;
+  dimension: Dimension;
+  answerOptionId: string;
+  score: number;
+  answeredAt: Date;
+}
+
+export interface AdminSessionResultPayload {
+  totalScore: number;
+  averageScore: number;
+  strongestDimensions: Dimension[];
+  weakestDimensions: Dimension[];
+  scoringVersion: string;
+  strengths: unknown;
+  nextFrontier: unknown;
+  ceoQuestion: string | null;
+}
+
+export interface AdminSessionDetailPayload extends AdminSessionListItemPayload {
+  responses: AdminSessionResponsePayload[];
+  result: AdminSessionResultPayload | null;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+const toAdminParticipantSummary = (
+  participant: {
+    _id: Types.ObjectId;
+    businessName: string;
+    phoneNumber: string;
+    email: string;
+    businessType: string;
+    numberOfEmployees: string;
+  } | null
+): AdminParticipantSummary | null =>
+  participant
+    ? {
+        id: participant._id.toString(),
+        businessName: participant.businessName,
+        phoneNumber: participant.phoneNumber,
+        email: participant.email,
+        businessType: participant.businessType,
+        numberOfEmployees: participant.numberOfEmployees,
+      }
+    : null;
+
+export interface ListAdminSessionsOptions {
+  page: number;
+  limit: number;
+  status?: SessionStatus;
+}
+
+export const listAdminSessions = async (
+  organizationId: string,
+  options: ListAdminSessionsOptions
+): Promise<PaginatedResult<AdminSessionListItemPayload>> => {
+  const filter: QueryFilter<SessionDocument> = { organizationId };
+  if (options.status) {
+    filter.status = options.status;
+  }
+
+  const skip = (options.page - 1) * options.limit;
+  const [sessions, total] = await Promise.all([
+    Session.find(filter).sort({ createdAt: -1 }).skip(skip).limit(options.limit),
+    Session.countDocuments(filter),
+  ]);
+
+  const participants = await Participant.find({
+    _id: { $in: sessions.map((s) => s.participantId) },
+  });
+  const participantById = new Map(participants.map((p) => [p._id.toString(), p]));
+
+  const results = await SessionResult.find({ sessionId: { $in: sessions.map((s) => s._id) } });
+  const resultBySessionId = new Map(results.map((r) => [r.sessionId.toString(), r]));
+
+  const profileIds = results
+    .map((r) => r.profileId)
+    .filter((id): id is Types.ObjectId => id !== null);
+  const profiles = await Profile.find({ _id: { $in: profileIds } });
+  const profileCodeById = new Map(profiles.map((p) => [p._id.toString(), p.code]));
+
+  const items = sessions.map((session) => {
+    const result = resultBySessionId.get(session._id.toString());
+    const profileCode =
+      result?.profileId ? (profileCodeById.get(result.profileId.toString()) ?? null) : null;
+    return {
+      id: session._id.toString(),
+      participant: toAdminParticipantSummary(
+        participantById.get(session.participantId.toString()) ?? null
+      ),
+      status: session.status,
+      startedAt: session.startedAt,
+      completedAt: session.completedAt,
+      totalScore: result?.totalScore ?? null,
+      averageScore: result?.averageScore ?? null,
+      profileCode,
+    };
+  });
+
+  return {
+    items,
+    page: options.page,
+    limit: options.limit,
+    total,
+    totalPages: Math.max(1, Math.ceil(total / options.limit)),
+  };
+};
+
+export const getAdminSessionById = async (
+  organizationId: string,
+  sessionId: string
+): Promise<AdminSessionDetailPayload> => {
+  const session = await Session.findOne({ _id: sessionId, organizationId });
+  if (!session) {
+    throw new AppError("Session not found", 404);
+  }
+
+  const participant = await Participant.findOne({
+    _id: session.participantId,
+    organizationId,
+  });
+  const result = await SessionResult.findOne({ sessionId: session._id });
+  const profile = result?.profileId ? await Profile.findById(result.profileId) : null;
+
+  return {
+    id: session._id.toString(),
+    participant: toAdminParticipantSummary(participant),
+    status: session.status,
+    startedAt: session.startedAt,
+    completedAt: session.completedAt,
+    totalScore: result?.totalScore ?? null,
+    averageScore: result?.averageScore ?? null,
+    profileCode: profile?.code ?? null,
+    responses: session.responses.map((r) => ({
+      questionId: r.questionId.toString(),
+      dimension: r.dimension,
+      answerOptionId: r.answerOptionId.toString(),
+      score: r.score,
+      answeredAt: r.answeredAt,
+    })),
+    result: result
+      ? {
+          totalScore: result.totalScore,
+          averageScore: result.averageScore,
+          strongestDimensions: result.strongestDimensions,
+          weakestDimensions: result.weakestDimensions,
+          scoringVersion: result.scoringVersion,
+          strengths: result.strengths,
+          nextFrontier: result.nextFrontier,
+          ceoQuestion: result.ceoQuestion,
+        }
+      : null,
+  };
 };
