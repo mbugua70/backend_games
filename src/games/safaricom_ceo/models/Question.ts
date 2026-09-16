@@ -18,7 +18,10 @@ export type Dimension = (typeof DIMENSIONS)[number];
 // fixed cardinality (exactly 5) child list. Mongoose still gives each
 // option its own _id, satisfying the spec's "id" field.
 export interface AnswerOption {
-  _id: Types.ObjectId;
+  // Optional here because a plain (not-yet-saved) option object assigned
+  // to this array from admin input doesn't have one yet - Mongoose
+  // generates it on save, same as any other subdocument _id.
+  _id?: Types.ObjectId;
   text: string;
   // Hidden score 1-5. Never serialize this to a participant-facing
   // response (see services/question.service.ts's toPublicQuestion).

@@ -30,6 +30,9 @@ import arBasketballAdminPlayerRoutes from "./games/ar_basketball/routes/admin/pl
 import arBasketballAdminRegistrationConfigRoutes from "./games/ar_basketball/routes/admin/registrationConfig.routes";
 import arBasketballGameRoutes from "./games/ar_basketball/routes/game/game.routes";
 import feedbackRoutes from "./games/feedback/routes/feedback.routes";
+import safaricomCeoAdminAuthRoutes from "./games/safaricom_ceo/routes/admin/auth.routes";
+import safaricomCeoAdminProfileRoutes from "./games/safaricom_ceo/routes/admin/profile.routes";
+import safaricomCeoAdminQuestionRoutes from "./games/safaricom_ceo/routes/admin/question.routes";
 import safaricomCeoGameRoutes from "./games/safaricom_ceo/routes/game/game.routes";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
@@ -144,8 +147,12 @@ export const createApp = (): Express => {
   app.use("/api/feedback", feedbackRoutes);
 
   // Endpoints for safaricom_ceo game
-  // Admin auth/question/profile/session/analytics routes join this mount
-  // in a later step, alongside its own OpenAPI document.
+  // Admin session/analytics routes join this mount in a later step,
+  // alongside its own OpenAPI document.
+
+  app.use("/api/admin/safaricom_ceo/v1/auth", safaricomCeoAdminAuthRoutes);
+  app.use("/api/admin/safaricom_ceo/v1/questions", safaricomCeoAdminQuestionRoutes);
+  app.use("/api/admin/safaricom_ceo/v1/profiles", safaricomCeoAdminProfileRoutes);
 
   app.use("/api/safaricom_ceo/v1", safaricomCeoGameRoutes);
 
