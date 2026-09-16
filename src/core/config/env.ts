@@ -23,6 +23,20 @@ const envSchema = z.object({
   // (src/games/feedback/middleware/requireApiKey.ts) - that module has no
   // JWT/admin login of its own, so this is its only gate.
   FEEDBACK_API_KEY: z.string().min(20, "FEEDBACK_API_KEY must be at least 20 characters"),
+  // safaricom_ceo's public endpoints (register/questions/sessions) carry no
+  // org identifier in their URLs - unlike jigsaw_puzzle/ar_basketball, this
+  // game has no per-event code in its spec. This slug resolves which single
+  // Organization those public requests belong to; admin routes still scope
+  // every query by the caller's own organizationId regardless of this value.
+  SAFARICOM_CEO_ORG_SLUG: z.string().min(1).default("safaricom-ceo-challenge"),
+  SAFARICOM_CEO_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  SAFARICOM_CEO_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(30),
+  SAFARICOM_CEO_LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(15 * 60_000),
+  SAFARICOM_CEO_LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
 });
 
 const parsed = envSchema.safeParse(process.env);
