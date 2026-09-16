@@ -27,6 +27,8 @@ npm run dev
 | `JWT_SECRET` | Signs/verifies admin bearer tokens (min 32 chars) |
 | `JWT_EXPIRES_IN` | Admin token lifetime |
 | `FEEDBACK_API_KEY` | Static key the `x-api-key` header must match to use `/api/feedback` (min 20 chars) |
+| `SAFARICOM_CEO_ORG_SLUG` | Which Organization safaricom_ceo's public (no-org-in-URL) endpoints belong to |
+| `SAFARICOM_CEO_RATE_LIMIT_*` / `SAFARICOM_CEO_LOGIN_RATE_LIMIT_*` | Rate limit window/max for safaricom_ceo's public endpoints and admin login respectively |
 
 Startup validates these and exits on anything missing or malformed
 rather than running half-configured.

@@ -23,6 +23,17 @@ export const errorHandler = (
     // express.json()'s body-parser throws this on malformed JSON payloads
     statusCode = 400;
     message = "Malformed JSON in request body";
+  } else if (
+    err instanceof Error &&
+    "type" in err &&
+    (err as { type?: string }).type === "entity.too.large"
+  ) {
+    // express.json()'s body-parser throws this when a request body exceeds
+    // its size limit - a client error, not a server fault, so every game
+    // sharing this handler should get 413 rather than the 500 the generic
+    // branch below would otherwise leave it at.
+    statusCode = 413;
+    message = "Request body is too large";
   } else if (err instanceof Error) {
     message = err.message;
   }
