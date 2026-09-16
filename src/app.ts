@@ -30,6 +30,7 @@ import arBasketballAdminPlayerRoutes from "./games/ar_basketball/routes/admin/pl
 import arBasketballAdminRegistrationConfigRoutes from "./games/ar_basketball/routes/admin/registrationConfig.routes";
 import arBasketballGameRoutes from "./games/ar_basketball/routes/game/game.routes";
 import feedbackRoutes from "./games/feedback/routes/feedback.routes";
+import { safaricomCeoOpenApiDocument } from "./games/safaricom_ceo/openapi/document";
 import safaricomCeoAdminAnalyticsRoutes from "./games/safaricom_ceo/routes/admin/analytics.routes";
 import safaricomCeoAdminAuthRoutes from "./games/safaricom_ceo/routes/admin/auth.routes";
 import safaricomCeoAdminProfileRoutes from "./games/safaricom_ceo/routes/admin/profile.routes";
@@ -149,7 +150,6 @@ export const createApp = (): Express => {
   app.use("/api/feedback", feedbackRoutes);
 
   // Endpoints for safaricom_ceo game
-  // Its own OpenAPI document joins this mount in a later step.
 
   app.use("/api/admin/safaricom_ceo/v1/auth", safaricomCeoAdminAuthRoutes);
   app.use("/api/admin/safaricom_ceo/v1/questions", safaricomCeoAdminQuestionRoutes);
@@ -166,6 +166,11 @@ export const createApp = (): Express => {
     "/api/docs/ar_basketball",
     swaggerUi.serveFiles(arBasketballOpenApiDocument),
     swaggerUi.setup(arBasketballOpenApiDocument)
+  );
+  app.use(
+    "/api/docs/safaricom_ceo",
+    swaggerUi.serveFiles(safaricomCeoOpenApiDocument),
+    swaggerUi.setup(safaricomCeoOpenApiDocument)
   );
 
   app.use(notFound);
