@@ -11,7 +11,9 @@
     "test": "vitest run",
     "seed:admin:jigsaw_puzzle": "tsx src/games/jigsaw_puzzle/scripts/seedAdmin.ts",
     "seed:admin:ar_basketball": "tsx src/games/ar_basketball/scripts/seedAdmin.ts",
-    "seed:demo:ar_basketball": "tsx src/games/ar_basketball/scripts/seedDemoEvent.ts"
+    "seed:demo:ar_basketball": "tsx src/games/ar_basketball/scripts/seedDemoEvent.ts",
+    "seed:admin:safaricom_ceo": "tsx src/games/safaricom_ceo/scripts/seedAdmin.ts",
+    "seed:content:safaricom_ceo": "tsx src/games/safaricom_ceo/scripts/seedContent.ts"
   },
   "keywords": [],
   "author": "",
