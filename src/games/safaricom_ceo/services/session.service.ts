@@ -275,11 +275,12 @@ export const getResult = async (sessionId: string): Promise<SessionResultPayload
 
 export interface AdminParticipantSummary {
   id: string;
-  businessName: string;
-  phoneNumber: string;
-  email: string;
-  businessType: string;
-  numberOfEmployees: string;
+  name: string;
+  businessName: string | null;
+  phoneNumber: string | null;
+  email: string | null;
+  businessType: string | null;
+  numberOfEmployees: string | null;
 }
 
 export interface AdminSessionListItemPayload {
@@ -328,16 +329,18 @@ export interface PaginatedResult<T> {
 const toAdminParticipantSummary = (
   participant: {
     _id: Types.ObjectId;
-    businessName: string;
-    phoneNumber: string;
-    email: string;
-    businessType: string;
-    numberOfEmployees: string;
+    name: string;
+    businessName: string | null;
+    phoneNumber: string | null;
+    email: string | null;
+    businessType: string | null;
+    numberOfEmployees: string | null;
   } | null
 ): AdminParticipantSummary | null =>
   participant
     ? {
         id: participant._id.toString(),
+        name: participant.name,
         businessName: participant.businessName,
         phoneNumber: participant.phoneNumber,
         email: participant.email,

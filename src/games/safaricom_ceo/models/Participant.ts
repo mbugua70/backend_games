@@ -6,11 +6,14 @@ import "../../../core/models/Organization";
 // model's callers must follow.
 export interface ParticipantDocument extends Document {
   organizationId: Types.ObjectId;
-  phoneNumber: string;
-  businessName: string;
-  email: string;
-  businessType: string;
-  numberOfEmployees: string;
+  // The only required field on registration - everything else below is
+  // optional so the form can be filled in partially at a busy event.
+  name: string;
+  phoneNumber: string | null;
+  businessName: string | null;
+  email: string | null;
+  businessType: string | null;
+  numberOfEmployees: string | null;
   // Optional client-supplied Idempotency-Key header value. A retry of the
   // same registration submit (e.g. after a dropped response at a busy
   // event) returns the original participant instead of creating a
@@ -24,11 +27,12 @@ export interface ParticipantDocument extends Document {
 const participantSchema = new Schema<ParticipantDocument>(
   {
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
-    phoneNumber: { type: String, required: true, trim: true },
-    businessName: { type: String, required: true, trim: true },
-    email: { type: String, required: true, trim: true, lowercase: true },
-    businessType: { type: String, required: true, trim: true },
-    numberOfEmployees: { type: String, required: true, trim: true },
+    name: { type: String, required: true, trim: true },
+    phoneNumber: { type: String, default: null, trim: true },
+    businessName: { type: String, default: null, trim: true },
+    email: { type: String, default: null, trim: true, lowercase: true },
+    businessType: { type: String, default: null, trim: true },
+    numberOfEmployees: { type: String, default: null, trim: true },
     idempotencyKey: { type: String, default: null },
   },
   { timestamps: true }

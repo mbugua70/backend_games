@@ -11,12 +11,15 @@ const phoneNumberSchema = z
   .max(20, "phoneNumber is too long")
   .regex(/^[0-9+()\-\s]+$/, "phoneNumber may only contain digits, spaces, +, -, and parentheses");
 
+// name is the only required registration field - everything else is
+// optional so the form can be filled in partially at a busy event.
 export const registerParticipantSchema = z.object({
-  phoneNumber: phoneNumberSchema,
-  businessName: z.string().trim().min(1, "businessName is required").max(200),
-  email: z.string().trim().toLowerCase().email("Invalid email address").max(200),
-  businessType: z.string().trim().min(1, "businessType is required").max(100),
-  numberOfEmployees: z.string().trim().min(1, "numberOfEmployees is required").max(50),
+  name: z.string().trim().min(1, "name is required").max(200),
+  phoneNumber: phoneNumberSchema.optional(),
+  businessName: z.string().trim().min(1, "businessName is required").max(200).optional(),
+  email: z.string().trim().toLowerCase().email("Invalid email address").max(200).optional(),
+  businessType: z.string().trim().min(1, "businessType is required").max(100).optional(),
+  numberOfEmployees: z.string().trim().min(1, "numberOfEmployees is required").max(50).optional(),
 });
 
 export type RegisterParticipantInput = z.infer<typeof registerParticipantSchema>;

@@ -227,6 +227,7 @@ describe("safaricom_ceo admin sessions + analytics", () => {
 
     const complete = async (businessType: string, numberOfEmployees: string) => {
       const { participant } = await participantService.registerParticipant({
+        name: "Biz Owner",
         phoneNumber: "0712345678",
         businessName: "Biz",
         email: `${Math.random().toString(36).slice(2)}@example.com`,
@@ -245,6 +246,7 @@ describe("safaricom_ceo admin sessions + analytics", () => {
     await complete("Retail", "51-100");
 
     const { participant: abandonedParticipant } = await participantService.registerParticipant({
+      name: "Abandoned Participant",
       phoneNumber: "0712345679",
       businessName: "Biz2",
       email: "abandoned@example.com",
@@ -255,6 +257,7 @@ describe("safaricom_ceo admin sessions + analytics", () => {
     await Session.findByIdAndUpdate(abandonedSession.id, { status: "ABANDONED" });
 
     const { participant: inProgressParticipant } = await participantService.registerParticipant({
+      name: "In Progress Participant",
       phoneNumber: "0712345680",
       businessName: "Biz3",
       email: "inprogress@example.com",

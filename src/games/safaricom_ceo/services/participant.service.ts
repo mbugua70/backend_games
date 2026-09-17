@@ -6,11 +6,12 @@ import { getPublicOrganization } from "./organization.service";
 
 export interface ParticipantPayload {
   id: string;
-  phoneNumber: string;
-  businessName: string;
-  email: string;
-  businessType: string;
-  numberOfEmployees: string;
+  name: string;
+  phoneNumber: string | null;
+  businessName: string | null;
+  email: string | null;
+  businessType: string | null;
+  numberOfEmployees: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +26,7 @@ export interface RegisterParticipantResult {
 // ParticipantDocument; every log call in this file passes only the id.
 const toParticipantPayload = (participant: ParticipantDocument): ParticipantPayload => ({
   id: participant._id.toString(),
+  name: participant.name,
   phoneNumber: participant.phoneNumber,
   businessName: participant.businessName,
   email: participant.email,
@@ -56,11 +58,12 @@ export const registerParticipant = async (
 
   const participant = await Participant.create({
     organizationId: organization._id,
-    phoneNumber: input.phoneNumber,
-    businessName: input.businessName,
-    email: input.email,
-    businessType: input.businessType,
-    numberOfEmployees: input.numberOfEmployees,
+    name: input.name,
+    phoneNumber: input.phoneNumber ?? null,
+    businessName: input.businessName ?? null,
+    email: input.email ?? null,
+    businessType: input.businessType ?? null,
+    numberOfEmployees: input.numberOfEmployees ?? null,
     idempotencyKey: idempotencyKey ?? null,
   });
 

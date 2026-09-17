@@ -21,12 +21,14 @@ export interface AnalyticsSummary {
     optionCounts: Array<{ answerOptionId: string; count: number }>;
   }>;
   profileDistribution: Array<{ profileCode: string | null; count: number }>;
-  businessTypeBreakdown: Array<{ businessType: string; count: number }>;
-  employeeSizeBreakdown: Array<{ numberOfEmployees: string; count: number }>;
+  // null groups participants who left this field blank at registration -
+  // it's optional now (see Participant.ts).
+  businessTypeBreakdown: Array<{ businessType: string | null; count: number }>;
+  employeeSizeBreakdown: Array<{ numberOfEmployees: string | null; count: number }>;
 }
 
 interface CountRow {
-  _id: string;
+  _id: string | null;
   count: number;
 }
 

@@ -56,6 +56,7 @@ describe("safaricom_ceo critical game flow", () => {
 
   const registerAndStart = async () => {
     const { participant } = await participantService.registerParticipant({
+      name: "Ada Lovelace",
       phoneNumber: "0712345678",
       businessName: "ABC Limited",
       email: `${Math.random().toString(36).slice(2)}@abc.com`,
@@ -68,6 +69,7 @@ describe("safaricom_ceo critical game flow", () => {
 
   it("registers a participant and normalizes the email, and a duplicate Idempotency-Key replays the same participant", async () => {
     const { participant } = await participantService.registerParticipant({
+      name: "Ada Lovelace",
       phoneNumber: "0712345678",
       businessName: "ABC Limited",
       email: "CEO@abc.com",
@@ -78,6 +80,7 @@ describe("safaricom_ceo critical game flow", () => {
 
     const result = await participantService.registerParticipant(
       {
+        name: "Ada Lovelace",
         phoneNumber: "0712345678",
         businessName: "Different Name Entirely",
         email: "different@abc.com",
@@ -88,6 +91,7 @@ describe("safaricom_ceo critical game flow", () => {
     );
     const replay = await participantService.registerParticipant(
       {
+        name: "Should Not Be Used",
         phoneNumber: "0700000000",
         businessName: "Should Not Be Used",
         email: "unused@abc.com",
@@ -99,6 +103,21 @@ describe("safaricom_ceo critical game flow", () => {
     expect(replay.wasCreated).toBe(false);
     expect(replay.participant.id).toBe(result.participant.id);
     expect(replay.participant.businessName).toBe("Different Name Entirely");
+  });
+
+  it("registers a participant with only a name - every other field is optional", async () => {
+    const { participant, wasCreated } = await participantService.registerParticipant({
+      name: "Walk-in Participant",
+    });
+    expect(wasCreated).toBe(true);
+    expect(participant.name).toBe("Walk-in Participant");
+    expect(participant.phoneNumber).toBeNull();
+    expect(participant.email).toBeNull();
+
+    // A name-only participant can still play the full game - session/
+    // response logic never depends on any of the optional fields.
+    const { session } = await sessionService.startSession(participant.id);
+    expect(session.status).toBe("IN_PROGRESS");
   });
 
   it("rejects starting a session for a nonexistent participant", async () => {

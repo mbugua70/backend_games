@@ -7,6 +7,7 @@ import { loginSchema } from "../../src/games/safaricom_ceo/validators/auth.valid
 
 describe("participant.validator", () => {
   const validInput = {
+    name: "Ada Lovelace",
     phoneNumber: "0712345678",
     businessName: "ABC Limited",
     email: "CEO@abc.com",
@@ -36,11 +37,16 @@ describe("participant.validator", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects a missing required field", () => {
-    const withoutBusinessName: Partial<typeof validInput> = { ...validInput };
-    delete withoutBusinessName.businessName;
-    const result = registerParticipantSchema.safeParse(withoutBusinessName);
+  it("rejects a missing name - the only required field", () => {
+    const withoutName: Partial<typeof validInput> = { ...validInput };
+    delete withoutName.name;
+    const result = registerParticipantSchema.safeParse(withoutName);
     expect(result.success).toBe(false);
+  });
+
+  it("accepts registration with only a name - every other field is optional", () => {
+    const result = registerParticipantSchema.safeParse({ name: "Ada Lovelace" });
+    expect(result.success).toBe(true);
   });
 });
 
