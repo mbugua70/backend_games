@@ -17,23 +17,21 @@ const parseArgs = (): { org: string } => {
   return { org };
 };
 
-// The client's approved question/option copy doesn't exist yet, so
-// questions are still seeded as clearly labeled placeholder text (see
-// below). Profiles, however, are seeded with first-draft real copy sourced
-// from 60_Second_CEO_Challenge_Agency_Brief.docx section 9 ("BUILD 4-5 CEO
-// PROFILES") - the brief names these exact 5 profiles and one-line
-// descriptions. The fuller paragraph descriptions here expand each one-liner
-// into the paragraph-length copy the result screen actually needs, in the
-// brief's own voice; see profileResolver.service.ts for the scoring-pattern
-// rule (also this file's own draft) that assigns one of these 5 to a
-// completed session. Both need creative/business sign-off before a real
-// event - PATCH /profiles/:id once approved copy exists.
+// Question and Profile copy are both first-draft real content now (not
+// placeholder), sourced from the approved UX mockup
+// (WhatsApp Image 2026-09-16, screens 3-7) for questions/options, and from
+// 60_Second_CEO_Challenge_Agency_Brief.docx section 9 ("BUILD 4-5 CEO
+// PROFILES") for the 5 profile names/descriptions - see
+// profileResolver.service.ts for the scoring-pattern rule that assigns one
+// of these 5 to a completed session. Still needs final creative/business
+// sign-off before a real event - PATCH /questions/:id or /profiles/:id once
+// approved copy supersedes this.
 //
-// Questions are seeded isActive: false (their options are active/valid so
-// an admin only has to flip isActive: true once real copy replaces the
-// placeholder, per question.service.ts's activation rule) - a fresh seed
-// can never make placeholder text playable by accident. Profiles are
-// seeded isActive: true since the resolver now actively assigns them.
+// Both Questions and Profiles are seeded isActive: true and use $set (not
+// $setOnInsert) for their content fields, so re-running this script always
+// syncs a DB that already has the old placeholder/draft copy to the latest
+// authored version here - only identity fields (organizationId, dimension,
+// code) are insert-only.
 const DRAFT_PROFILES = [
   {
     code: "FOUNDATION_BUILDER",
@@ -72,6 +70,64 @@ const DRAFT_PROFILES = [
   },
 ] as const;
 
+// One question per dimension, in DIMENSIONS order, each with 5 response
+// options moving from reactive/basic (level 1) to proactive/advanced
+// (level 5) per the brief's response-structure rule - copy taken directly
+// from the approved mockup so this matches what's already been signed off
+// visually, not invented separately here.
+const DRAFT_QUESTIONS: Record<Dimension, { text: string; options: string[] }> = {
+  VISIBILITY: {
+    text: "As your business grows, how quickly can you see what's happening across it?",
+    options: [
+      "Mostly after problems appear",
+      "Through periodic reports",
+      "Across key parts of the business",
+      "Near real-time across most operations",
+      "Predictively, before action is required",
+    ],
+  },
+  EFFICIENCY: {
+    text: "When the business gets more complex, how much still depends on people doing things manually?",
+    options: [
+      "Almost everything is manual",
+      "A lot still depends on manual work",
+      "Some processes are automated",
+      "Most key processes are automated",
+      "We use AI and automation at scale",
+    ],
+  },
+  CONNECTEDNESS: {
+    text: "How connected are your people, locations and systems when decisions need to move quickly?",
+    options: [
+      "Mostly disconnected",
+      "Connected in some areas",
+      "Well connected across key areas",
+      "Highly connected across the business",
+      "Seamless, real-time connectivity",
+    ],
+  },
+  RESILIENCE: {
+    text: "If something critical went down tomorrow, how confident are you that the business would keep moving?",
+    options: [
+      "Not very confident",
+      "Somewhat confident",
+      "Confident for a limited time",
+      "Very confident",
+      "Highly confident with strong resilience",
+    ],
+  },
+  INTELLIGENCE: {
+    text: "How much of your business can make decisions from data rather than instinct alone?",
+    options: [
+      "Very little - we rely on experience",
+      "Some data, but not consistently",
+      "Across key areas of the business",
+      "Widely used, with data shaping decisions",
+      "AI and advanced analytics help us predict what's next",
+    ],
+  },
+};
+
 const run = async (): Promise<void> => {
   const { org } = parseArgs();
   await connectDatabase();
@@ -85,19 +141,22 @@ const run = async (): Promise<void> => {
 
   for (let i = 0; i < DIMENSIONS.length; i += 1) {
     const dimension = DIMENSIONS[i]!;
+    const draft = DRAFT_QUESTIONS[dimension];
     await Question.findOneAndUpdate(
       { organizationId: organization._id, dimension },
       {
         $setOnInsert: {
           organizationId: organization._id,
           dimension,
-          text: `[PLACEHOLDER] ${dimension} question - replace via PATCH before going live`,
           order: i + 1,
-          isActive: false,
-          options: [1, 2, 3, 4, 5].map((level) => ({
-            text: `[PLACEHOLDER] ${dimension} option, level ${level}`,
-            level,
-            order: level,
+        },
+        $set: {
+          text: draft.text,
+          isActive: true,
+          options: draft.options.map((text, index) => ({
+            text,
+            level: index + 1,
+            order: index + 1,
             isActive: true,
           })),
         },
@@ -113,17 +172,19 @@ const run = async (): Promise<void> => {
         $setOnInsert: {
           organizationId: organization._id,
           code: profile.code,
+          displayOrder: profile.displayOrder,
+        },
+        $set: {
           name: profile.name,
           description: profile.description,
           isActive: true,
-          displayOrder: profile.displayOrder,
         },
       },
       { upsert: true, new: true }
     );
   }
 
-  logger.info({ organization: organization.slug }, "safaricom_ceo placeholder content seeded");
+  logger.info({ organization: organization.slug }, "safaricom_ceo draft content seeded");
 };
 
 run()
