@@ -2,7 +2,7 @@ import "../../../core/utils/cryptoPolyfill";
 import { connectDatabase, disconnectDatabase } from "../../../core/config/database";
 import { logger } from "../../../core/logger/logger";
 import { Organization } from "../../../core/models/Organization";
-import { DIMENSIONS, Question } from "../models/Question";
+import { DIMENSIONS, Dimension, Question } from "../models/Question";
 import { Profile } from "../models/Profile";
 
 const USAGE = "Usage: npm run seed:content:safaricom_ceo -- --org <slug>";
@@ -142,6 +142,9 @@ const run = async (): Promise<void> => {
   for (let i = 0; i < DIMENSIONS.length; i += 1) {
     const dimension = DIMENSIONS[i]!;
     const draft = DRAFT_QUESTIONS[dimension];
+    if (!draft) {
+      throw new Error(`No draft question defined for dimension "${dimension}"`);
+    }
     await Question.findOneAndUpdate(
       { organizationId: organization._id, dimension },
       {
