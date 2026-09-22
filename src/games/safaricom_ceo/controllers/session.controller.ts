@@ -2,7 +2,11 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../../../core/utils/asyncHandler";
 import { sendSuccess } from "../../../core/utils/response";
 import * as sessionService from "../services/session.service";
-import { sessionIdParamSchema, startSessionSchema } from "../validators/session.validator";
+import {
+  sessionIdParamSchema,
+  startSessionSchema,
+  submitInterestSchema,
+} from "../validators/session.validator";
 
 const getIdempotencyKey = (req: Request): string | null => {
   const header = req.headers["idempotency-key"];
@@ -39,4 +43,11 @@ export const getResult = asyncHandler(async (req: Request, res: Response): Promi
   const { sessionId } = sessionIdParamSchema.parse(req.params);
   const result = await sessionService.getResult(sessionId);
   sendSuccess(res, result);
+});
+
+export const submitInterest = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { sessionId } = sessionIdParamSchema.parse(req.params);
+  const { dimensions } = submitInterestSchema.parse(req.body);
+  const result = await sessionService.submitInterest(sessionId, dimensions);
+  sendSuccess(res, result, "Interest recorded");
 });

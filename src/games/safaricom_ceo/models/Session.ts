@@ -32,6 +32,12 @@ export interface SessionDocument extends Document {
   startedAt: Date;
   completedAt: Date | null;
   idempotencyKey: string | null;
+  // Lead-capture: which "next frontier" dimension(s) the CEO said they want
+  // to explore further on the post-result CTA screen, so an org's admin can
+  // follow up on the right topic - see services/session.service.ts's
+  // submitInterest. Empty/null until (and unless) that screen is submitted.
+  interestedFrontiers: Dimension[];
+  interestSubmittedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -65,6 +71,8 @@ const sessionSchema = new Schema<SessionDocument>(
     startedAt: { type: Date, required: true, default: () => new Date() },
     completedAt: { type: Date, default: null },
     idempotencyKey: { type: String, default: null },
+    interestedFrontiers: { type: [String], enum: DIMENSIONS, default: [] },
+    interestSubmittedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

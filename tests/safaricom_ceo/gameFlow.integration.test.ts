@@ -228,6 +228,35 @@ describe("safaricom_ceo critical game flow", () => {
     ).rejects.toThrow(/not in progress/);
   });
 
+  it("submitInterest saves the CEO's selected frontiers only once the session is completed", async () => {
+    const { session } = await registerAndStart();
+    const questions = await Question.find({ organizationId }).sort({ order: 1 });
+
+    await expect(
+      sessionService.submitInterest(session.id, ["VISIBILITY"])
+    ).rejects.toThrow(/has not been completed yet/);
+
+    for (const q of questions) {
+      await responseService.upsertResponse(session.id, q._id.toString(), q.options[0]!._id!.toString());
+    }
+    await sessionService.completeSession(session.id);
+
+    const saved = await sessionService.submitInterest(session.id, ["VISIBILITY", "RESILIENCE"]);
+    expect(saved.interestedFrontiers).toEqual(["VISIBILITY", "RESILIENCE"]);
+    expect(saved.interestSubmittedAt).toBeInstanceOf(Date);
+
+    // Idempotent - resubmitting overwrites rather than appending.
+    const resubmitted = await sessionService.submitInterest(session.id, ["INTELLIGENCE"]);
+    expect(resubmitted.interestedFrontiers).toEqual(["INTELLIGENCE"]);
+  });
+
+  it("rejects submitInterest for a nonexistent session", async () => {
+    const fakeId = new mongoose.Types.ObjectId().toString();
+    await expect(sessionService.submitInterest(fakeId, ["VISIBILITY"])).rejects.toThrow(
+      /Session not found/
+    );
+  });
+
   it("never creates two SessionResult rows under concurrent completion requests", async () => {
     const { session } = await registerAndStart();
     const questions = await Question.find({ organizationId }).sort({ order: 1 });

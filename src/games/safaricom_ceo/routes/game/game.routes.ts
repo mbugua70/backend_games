@@ -36,5 +36,6 @@ router.put(
 );
 router.post("/sessions/:sessionId/complete", standardLimiter, sessionController.complete);
 router.get("/sessions/:sessionId/result", sessionController.getResult);
+router.post("/sessions/:sessionId/interest", standardLimiter, sessionController.submitInterest);
 
 export default router;

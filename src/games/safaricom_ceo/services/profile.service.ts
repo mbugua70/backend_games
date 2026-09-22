@@ -1,12 +1,16 @@
 import { AppError } from "../../../core/utils/AppError";
-import { Profile, ProfileDocument } from "../models/Profile";
+import { Dimension } from "../models/Question";
+import { Profile, ProfileDocument, ProfileNextFrontierEntry } from "../models/Profile";
 import { CreateProfileInput, UpdateProfileInput } from "../validators/profile.validator";
 
 export interface ProfilePayload {
   id: string;
   code: string;
   name: string;
+  tagline: string;
   description: string;
+  strengths: Dimension[];
+  nextFrontier: ProfileNextFrontierEntry[];
   isActive: boolean;
   displayOrder: number;
   createdAt: Date;
@@ -17,7 +21,10 @@ const toProfilePayload = (profile: ProfileDocument): ProfilePayload => ({
   id: profile._id.toString(),
   code: profile.code,
   name: profile.name,
+  tagline: profile.tagline,
   description: profile.description,
+  strengths: profile.strengths,
+  nextFrontier: profile.nextFrontier,
   isActive: profile.isActive,
   displayOrder: profile.displayOrder,
   createdAt: profile.createdAt,

@@ -44,6 +44,7 @@ export const toSessionPayload = (session: SessionDocument): SessionPayload => ({
 export interface PublicProfilePayload {
   code: string;
   name: string;
+  tagline: string;
   description: string;
 }
 
@@ -55,19 +56,33 @@ export interface SessionResultPayload {
   ceoQuestion: string | null;
 }
 
+// strengths/nextFrontier come from the resolved Profile document (fixed
+// per-profile content), not from SessionResult's own strengths/nextFrontier
+// fields - those are only kept on SessionResult for backward compatibility
+// with rows written before this changed; completeSession no longer writes
+// to them (see below).
 const toResultPayload = async (result: SessionResultDocument): Promise<SessionResultPayload> => {
   let profile: PublicProfilePayload | null = null;
+  let strengths: unknown = null;
+  let nextFrontier: unknown = null;
   if (result.profileId) {
     const profileDoc = await Profile.findById(result.profileId);
     if (profileDoc) {
-      profile = { code: profileDoc.code, name: profileDoc.name, description: profileDoc.description };
+      profile = {
+        code: profileDoc.code,
+        name: profileDoc.name,
+        tagline: profileDoc.tagline,
+        description: profileDoc.description,
+      };
+      strengths = profileDoc.strengths;
+      nextFrontier = profileDoc.nextFrontier;
     }
   }
   return {
     sessionId: result.sessionId.toString(),
     profile,
-    strengths: result.strengths,
-    nextFrontier: result.nextFrontier,
+    strengths,
+    nextFrontier,
     ceoQuestion: result.ceoQuestion,
   };
 };
@@ -235,8 +250,6 @@ export const completeSession = async (sessionId: string): Promise<SessionResultP
       strongestDimensions: summary.strongest,
       weakestDimensions: summary.weakest,
       profileId,
-      strengths: resolution.strengths,
-      nextFrontier: resolution.nextFrontier,
       ceoQuestion: resolution.ceoQuestion,
       scoringVersion: SCORING_VERSION,
     });
@@ -253,6 +266,36 @@ export const completeSession = async (sessionId: string): Promise<SessionResultP
   );
 
   return toResultPayload(resultDoc);
+};
+
+// Lead-capture for the post-result "Your Next Move" CTA screen - which
+// frontier(s) the CEO wants an RM to follow up on. Idempotent: resubmitting
+// (e.g. changing their mind) just overwrites the previous selection. Only
+// valid once the session is COMPLETED, since this is offered after the
+// result is shown.
+export const submitInterest = async (
+  sessionId: string,
+  dimensions: Dimension[]
+): Promise<{ interestedFrontiers: Dimension[]; interestSubmittedAt: Date }> => {
+  const session = await findSessionOrThrow(sessionId);
+  if (session.status !== "COMPLETED") {
+    throw new AppError("Session has not been completed yet", 409);
+  }
+
+  const interestSubmittedAt = new Date();
+  const updated = await Session.findOneAndUpdate(
+    { _id: sessionId },
+    { $set: { interestedFrontiers: dimensions, interestSubmittedAt } },
+    { new: true }
+  );
+  if (!updated) {
+    throw new AppError("Session not found", 404);
+  }
+
+  return {
+    interestedFrontiers: updated.interestedFrontiers,
+    interestSubmittedAt: updated.interestSubmittedAt as Date,
+  };
 };
 
 export const getResult = async (sessionId: string): Promise<SessionResultPayload> => {
@@ -316,6 +359,10 @@ export interface AdminSessionResultPayload {
 export interface AdminSessionDetailPayload extends AdminSessionListItemPayload {
   responses: AdminSessionResponsePayload[];
   result: AdminSessionResultPayload | null;
+  // Lead-capture fields live on Session (not SessionResult) - see
+  // submitInterest above.
+  interestedFrontiers: Dimension[];
+  interestSubmittedAt: Date | null;
 }
 
 export interface PaginatedResult<T> {
@@ -455,5 +502,7 @@ export const getAdminSessionById = async (
           ceoQuestion: result.ceoQuestion,
         }
       : null,
+    interestedFrontiers: session.interestedFrontiers,
+    interestSubmittedAt: session.interestSubmittedAt,
   };
 };

@@ -32,43 +32,201 @@ const parseArgs = (): { org: string } => {
 // syncs a DB that already has the old placeholder/draft copy to the latest
 // authored version here - only identity fields (organizationId, dimension,
 // code) are insert-only.
-const DRAFT_PROFILES = [
+// strengths/nextFrontier are the fixed per-profile content shown on the
+// result screen (see Profile.ts) - every CEO landing on a given profile
+// sees the same list, regardless of their exact per-dimension scores beyond
+// what already determined which profile they got. Transcribed verbatim from
+// CEO Game VI.docx's "Profiles screen 8 and 10" appendix, not paraphrased.
+const DRAFT_PROFILES: Array<{
+  code: string;
+  name: string;
+  tagline: string;
+  displayOrder: number;
+  description: string;
+  strengths: Dimension[];
+  nextFrontier: { dimension: Dimension; explanation: string }[];
+}> = [
   {
     code: "FOUNDATION_BUILDER",
     name: "Foundation Builder",
+    tagline: "Strong foundations. Opportunity to digitise and connect.",
     displayOrder: 1,
     description:
       "Your business has strong foundations, and the fundamentals of how you see and run it are largely in place. Your next opportunity lies in digitising and connecting more of what you've already built.",
+    strengths: ["VISIBILITY", "EFFICIENCY", "RESILIENCE"],
+    nextFrontier: [
+      {
+        dimension: "VISIBILITY",
+        explanation:
+          "As the business grows, the gap between what's happening and what you can actually see tends to widen, and that gap is where surprises live.",
+      },
+      {
+        dimension: "EFFICIENCY",
+        explanation:
+          "The more the business scales, the more manual work quietly becomes the ceiling on how fast it can grow.",
+      },
+      {
+        dimension: "CONNECTEDNESS",
+        explanation:
+          "As people, locations and systems multiply, disconnected pieces slow down exactly the decisions that need to move fastest.",
+      },
+      {
+        dimension: "RESILIENCE",
+        explanation:
+          "As your footprint grows, the ability to anticipate disruption and keep the business moving becomes increasingly important.",
+      },
+      {
+        dimension: "INTELLIGENCE",
+        explanation:
+          "The businesses that grow fastest aren't the ones with the most data, they're the ones that turn it into decisions before instinct has to guess.",
+      },
+    ],
   },
   {
     code: "CONNECTED_OPERATOR",
     name: "Connected Operator",
+    tagline: "Strong connectivity. Integrated operations that keep business moving.",
     displayOrder: 2,
     description:
-      "Your business shows strong connectivity and operational integration - people, locations and systems already work well together. Your next opportunity lies in extending that connectedness further, so the business can respond even faster as it grows.",
+      "Your business has strong connections across people, locations and systems. Your next opportunity lies in using that connectivity to create greater visibility, efficiency and speed.",
+    strengths: ["CONNECTEDNESS", "EFFICIENCY", "VISIBILITY"],
+    nextFrontier: [
+      {
+        dimension: "VISIBILITY",
+        explanation:
+          "When people, locations and systems are connected, the next opportunity is seeing what's happening across the business in real time.",
+      },
+      {
+        dimension: "EFFICIENCY",
+        explanation:
+          "The more connected the operation, the greater the opportunity to automate processes and free teams to focus on higher-value decisions.",
+      },
+      {
+        dimension: "CONNECTEDNESS",
+        explanation:
+          "Connectivity creates momentum — but the next step is making sure information flows seamlessly wherever decisions need to happen.",
+      },
+      {
+        dimension: "RESILIENCE",
+        explanation:
+          "As the connected footprint grows, keeping critical operations secure, reliable and available becomes increasingly important.",
+      },
+      {
+        dimension: "INTELLIGENCE",
+        explanation:
+          "The next step is moving from being connected to using that connected environment to anticipate what the business needs next.",
+      },
+    ],
   },
   {
     code: "INTELLIGENT_GROWTH_BUILDER",
     name: "Intelligent Growth Builder",
+    tagline: "Strong data and AI orientation. Turning intelligence into growth.",
     displayOrder: 3,
     description:
-      "Your business has a strong data and AI orientation, already using information to sharpen decisions. Your next opportunity lies in extending that intelligence deeper into the business, so more decisions are backed by data rather than instinct.",
+      "Your business is using data and intelligence to shape decisions and drive growth. Your next opportunity lies in turning more of that intelligence into prediction, automation and action.",
+    strengths: ["INTELLIGENCE", "VISIBILITY", "EFFICIENCY"],
+    nextFrontier: [
+      {
+        dimension: "VISIBILITY",
+        explanation:
+          "More data can create more visibility, but the real opportunity is turning it into one clearer picture of what's happening across the business.",
+      },
+      {
+        dimension: "EFFICIENCY",
+        explanation:
+          "As AI and automation mature, the opportunity is to move from individual use cases to smarter ways of working across the business.",
+      },
+      {
+        dimension: "CONNECTEDNESS",
+        explanation:
+          "As data flows across more systems, connecting those sources can turn fragmented information into a more complete view.",
+      },
+      {
+        dimension: "RESILIENCE",
+        explanation:
+          "Intelligence can help the business spot signals earlier and respond before disruption becomes a bigger problem.",
+      },
+      {
+        dimension: "INTELLIGENCE",
+        explanation:
+          "The advantage isn't simply having more data, it's turning data into decisions before instinct has to guess.",
+      },
+    ],
   },
   {
     code: "RESILIENCE_LEADER",
     name: "Resilience Leader",
+    tagline: "Strong resilience. Built to protect continuity and manage risk.",
     displayOrder: 4,
     description:
-      "Your business shows a strong focus on continuity, security and risk - you're built to keep moving when things go wrong. Your next opportunity lies in turning that resilience into a genuine competitive edge as the business scales.",
+      "Your business places a strong focus on continuity, security and risk. Your next opportunity lies in using that resilience to create greater agility and confidence as the business evolves.",
+    strengths: ["RESILIENCE", "VISIBILITY", "CONNECTEDNESS"],
+    nextFrontier: [
+      {
+        dimension: "VISIBILITY",
+        explanation:
+          "Resilience starts with knowing what's happening. Greater visibility can help identify risks before they become disruptions.",
+      },
+      {
+        dimension: "EFFICIENCY",
+        explanation:
+          "Reducing manual dependencies can remove points of failure and help critical processes keep moving when circumstances change.",
+      },
+      {
+        dimension: "CONNECTEDNESS",
+        explanation:
+          "As the business becomes more connected, those connections need to remain secure, reliable and available when they matter most.",
+      },
+      {
+        dimension: "RESILIENCE",
+        explanation:
+          "Resilience is not just responding when something goes wrong. It's anticipating disruption and keeping the business moving through it.",
+      },
+      {
+        dimension: "INTELLIGENCE",
+        explanation:
+          "The next frontier is using data and early signals to identify risk sooner, and act before it becomes an interruption.",
+      },
+    ],
   },
   {
     code: "FUTURE_READY_ENTERPRISE",
     name: "Future-Ready Enterprise",
+    tagline: "High maturity across the dimensions. Built to adapt and move ahead.",
     displayOrder: 5,
     description:
-      "Your business shows high maturity across visibility, efficiency, connectedness, resilience and intelligence - a rare, well-rounded foundation. Your next opportunity lies in using that strength to move first, while others are still catching up.",
+      "Your business is operating strongly across the dimensions that matter for the future. Your next opportunity lies in bringing these strengths together to anticipate change and turn it into advantage.",
+    strengths: ["VISIBILITY", "EFFICIENCY", "CONNECTEDNESS", "RESILIENCE", "INTELLIGENCE"],
+    nextFrontier: [
+      {
+        dimension: "VISIBILITY",
+        explanation:
+          "When the business can see what's happening across its operations, the next opportunity is turning visibility into faster, smarter decisions.",
+      },
+      {
+        dimension: "EFFICIENCY",
+        explanation:
+          "With strong automation in place, the next frontier is using AI and intelligent systems to continuously improve how the business operates.",
+      },
+      {
+        dimension: "CONNECTEDNESS",
+        explanation:
+          "The next step is moving beyond connected systems to an integrated environment where information and decisions flow seamlessly.",
+      },
+      {
+        dimension: "RESILIENCE",
+        explanation:
+          "Future readiness means building resilience into the way the business operates so it can adapt without losing momentum.",
+      },
+      {
+        dimension: "INTELLIGENCE",
+        explanation:
+          "The next advantage comes from turning data and intelligence into foresight, anticipating what's next before it becomes obvious.",
+      },
+    ],
   },
-] as const;
+];
 
 // One question per dimension, in DIMENSIONS order, each with 5 response
 // options moving from reactive/basic (level 1) to proactive/advanced
@@ -179,7 +337,10 @@ const run = async (): Promise<void> => {
         },
         $set: {
           name: profile.name,
+          tagline: profile.tagline,
           description: profile.description,
+          strengths: profile.strengths,
+          nextFrontier: profile.nextFrontier,
           isActive: true,
         },
       },

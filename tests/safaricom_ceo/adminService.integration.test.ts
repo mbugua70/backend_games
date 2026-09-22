@@ -170,10 +170,15 @@ describe("safaricom_ceo admin question/profile management", () => {
   });
 
   it("creates a profile, uppercases its code, rejects a duplicate, and keeps code immutable on update", async () => {
+    const strengths = ["VISIBILITY"] as const;
+    const nextFrontier = [{ dimension: "RESILIENCE", explanation: "test" }] as const;
     const profile = await profileService.createProfile(organizationId, {
       code: "foundation_builder",
       name: "Foundation Builder",
+      tagline: "tagline",
       description: "desc",
+      strengths: [...strengths],
+      nextFrontier: [...nextFrontier],
       isActive: true,
       displayOrder: 1,
     });
@@ -183,7 +188,10 @@ describe("safaricom_ceo admin question/profile management", () => {
       profileService.createProfile(organizationId, {
         code: "FOUNDATION_BUILDER",
         name: "Dup",
+        tagline: "tagline",
         description: "dup",
+        strengths: [...strengths],
+        nextFrontier: [...nextFrontier],
         isActive: true,
         displayOrder: 2,
       })

@@ -94,7 +94,7 @@ describe("profileResolver.service", () => {
     expect(result.profileCode).toBe("RESILIENCE_LEADER");
   });
 
-  it("derives strengths from the strongest dimension(s), unchanged from before", () => {
+  it("no longer returns strengths/nextFrontier - those are fixed content on the resolved Profile now", () => {
     const result = resolve([
       { dimension: "VISIBILITY", score: 5 },
       { dimension: "EFFICIENCY", score: 5 },
@@ -102,29 +102,11 @@ describe("profileResolver.service", () => {
       { dimension: "RESILIENCE", score: 2 },
       { dimension: "INTELLIGENCE", score: 2 },
     ]);
-    expect(result.strengths).toEqual(["VISIBILITY", "EFFICIENCY"]);
+    expect(result).not.toHaveProperty("strengths");
+    expect(result).not.toHaveProperty("nextFrontier");
   });
 
-  it("derives nextFrontier as {dimension, explanation} entries for every weakest dimension", () => {
-    const result = resolve([
-      { dimension: "VISIBILITY", score: 5 },
-      { dimension: "EFFICIENCY", score: 5 },
-      { dimension: "CONNECTEDNESS", score: 3 },
-      { dimension: "RESILIENCE", score: 2 },
-      { dimension: "INTELLIGENCE", score: 2 },
-    ]);
-    expect(result.nextFrontier).toHaveLength(2);
-    expect(result.nextFrontier.map((entry) => entry.dimension)).toEqual([
-      "RESILIENCE",
-      "INTELLIGENCE",
-    ]);
-    for (const entry of result.nextFrontier) {
-      expect(typeof entry.explanation).toBe("string");
-      expect(entry.explanation.length).toBeGreaterThan(0);
-    }
-  });
-
-  it("sets ceoQuestion from the primary next-frontier dimension", () => {
+  it("sets ceoQuestion from the primary next-frontier (weakest) dimension", () => {
     const result = resolve([
       { dimension: "VISIBILITY", score: 4 },
       { dimension: "EFFICIENCY", score: 4 },

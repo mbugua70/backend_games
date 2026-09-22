@@ -5,16 +5,14 @@ export interface ProfileResolutionInput extends ScoringSummary {
   organizationId: string;
 }
 
-export interface NextFrontierEntry {
-  dimension: Dimension;
-  explanation: string;
-}
-
 export interface ProfileResolutionResult {
   // The Profile.code to attach to the SessionResult, or null.
   profileCode: string | null;
-  strengths: Dimension[];
-  nextFrontier: NextFrontierEntry[];
+  // strengths/nextFrontier are NOT computed here - they're fixed per-profile
+  // content that lives on the Profile document itself (see Profile.ts) and
+  // gets attached in session.service.ts's toResultPayload from whichever
+  // Profile this resolves to. This resolver only decides *which* profile
+  // applies and which reflection question to ask.
   ceoQuestion: string | null;
   // Lets callers (e.g. the GET .../result response) label the result as
   // provisional in the API/UI without guessing from profileCode being null.
@@ -50,41 +48,24 @@ const PROFILE_CODES = {
 // own placeholder example for this exact rule ("average >= 4.5").
 const FUTURE_READY_AVERAGE_THRESHOLD = 4.5;
 
-// Per-dimension "next frontier" explanation + CEO question copy. Drafted in
-// the brief's voice/tone (business language, not technical, not judgemental)
-// and modeled directly on the one full example the brief itself gives for
-// RESILIENCE - the other 4 are this file's own extrapolation and need the
-// same creative sign-off as the profile descriptions before going live.
-const NEXT_FRONTIER_COPY: Record<Dimension, { explanation: string; ceoQuestion: string }> = {
-  VISIBILITY: {
-    explanation:
-      "As a business grows, the gap between what's happening and what you can actually see tends to widen - and that gap is where surprises live.",
-    ceoQuestion: "What would you catch sooner if you could see your whole business at once?",
-  },
-  EFFICIENCY: {
-    explanation:
-      "The more the business scales, the more manual work quietly becomes the ceiling on how fast it can grow.",
-    ceoQuestion:
-      "What would become possible if your best people stopped doing your business's busywork?",
-  },
-  CONNECTEDNESS: {
-    explanation:
-      "As people, locations and systems multiply, disconnected pieces slow down exactly the decisions that need to move fastest.",
-    ceoQuestion:
-      "What decision took longer than it should have, simply because two parts of your business weren't talking to each other?",
-  },
-  RESILIENCE: {
-    // The brief's own example, verbatim (section 9).
-    explanation:
-      "As your footprint grows, the ability to anticipate disruption and keep the business moving becomes increasingly important.",
-    ceoQuestion: "What would become possible if your business could see disruption before it felt it?",
-  },
-  INTELLIGENCE: {
-    explanation:
-      "The businesses that grow fastest aren't the ones with the most data - they're the ones that turn it into decisions before instinct has to guess.",
-    ceoQuestion:
-      "What's the last big decision you made on instinct that you wish you'd had the data for?",
-  },
+// Per-dimension CEO reflection question, keyed off the CEO's actual weakest
+// dimension - this is the one piece of the result that stays dynamic/
+// personalized (everything else - strengths, the 5-entry next-frontier list
+// - is now fixed copy on the Profile document itself, see Profile.ts).
+// Drafted in the brief's voice/tone (business language, not technical, not
+// judgemental) and modeled on the one full example the brief itself gives
+// for RESILIENCE - the other 4 are this file's own extrapolation and need
+// the same creative sign-off as the profile copy before going live.
+const CEO_QUESTION_COPY: Record<Dimension, string> = {
+  VISIBILITY: "What would you catch sooner if you could see your whole business at once?",
+  EFFICIENCY:
+    "What would become possible if your best people stopped doing your business's busywork?",
+  CONNECTEDNESS:
+    "What decision took longer than it should have, simply because two parts of your business weren't talking to each other?",
+  // The brief's own example, verbatim (section 9).
+  RESILIENCE: "What would become possible if your business could see disruption before it felt it?",
+  INTELLIGENCE:
+    "What's the last big decision you made on instinct that you wish you'd had the data for?",
 };
 
 // strongest/weakest from scoring.service.ts are ordered by when that
@@ -117,12 +98,7 @@ export class DimensionPatternProfileResolver implements ProfileResolver {
   resolve(input: ProfileResolutionInput): ProfileResolutionResult {
     return {
       profileCode: resolveProfileCode(input),
-      strengths: input.strongest,
-      nextFrontier: input.weakest.map((dimension) => ({
-        dimension,
-        explanation: NEXT_FRONTIER_COPY[dimension].explanation,
-      })),
-      ceoQuestion: NEXT_FRONTIER_COPY[primaryDimension(input.weakest)].ceoQuestion,
+      ceoQuestion: CEO_QUESTION_COPY[primaryDimension(input.weakest)],
       isPlaceholder: false,
     };
   }
