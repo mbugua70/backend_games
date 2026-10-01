@@ -37,6 +37,19 @@ import safaricomCeoAdminProfileRoutes from "./games/safaricom_ceo/routes/admin/p
 import safaricomCeoAdminQuestionRoutes from "./games/safaricom_ceo/routes/admin/question.routes";
 import safaricomCeoAdminSessionRoutes from "./games/safaricom_ceo/routes/admin/session.routes";
 import safaricomCeoGameRoutes from "./games/safaricom_ceo/routes/game/game.routes";
+import { carrefourBalloonOpenApiDocument } from "./games/carrefour_balloon/openapi/document";
+import carrefourBalloonAdminAuthRoutes from "./games/carrefour_balloon/routes/admin/auth.routes";
+import carrefourBalloonAdminBrandRoutes from "./games/carrefour_balloon/routes/admin/brand.routes";
+import carrefourBalloonAdminEventRoutes from "./games/carrefour_balloon/routes/admin/event.routes";
+import carrefourBalloonAdminGiftRoutes from "./games/carrefour_balloon/routes/admin/gift.routes";
+import carrefourBalloonAdminGiftPoolRoutes from "./games/carrefour_balloon/routes/admin/giftPool.routes";
+import carrefourBalloonAdminGiftPoolEntryRoutes from "./games/carrefour_balloon/routes/admin/giftPoolEntry.routes";
+import carrefourBalloonAdminGiftPoolEntryStockRoutes from "./games/carrefour_balloon/routes/admin/giftPoolEntryStock.routes";
+import carrefourBalloonAdminRegistrationConfigRoutes from "./games/carrefour_balloon/routes/admin/registrationConfig.routes";
+import carrefourBalloonAdminStatsRoutes from "./games/carrefour_balloon/routes/admin/stats.routes";
+import carrefourBalloonAdminStockAdjustmentRoutes from "./games/carrefour_balloon/routes/admin/stockAdjustment.routes";
+import carrefourBalloonAdminWinRoutes from "./games/carrefour_balloon/routes/admin/win.routes";
+import carrefourBalloonGameRoutes from "./games/carrefour_balloon/routes/game/game.routes";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 300;
@@ -159,6 +172,53 @@ export const createApp = (): Express => {
 
   app.use("/api/safaricom_ceo/v1", safaricomCeoGameRoutes);
 
+  // Endpoints for carrefour_balloon game
+
+  app.use("/api/admin/carrefour_balloon/v1/auth", carrefourBalloonAdminAuthRoutes);
+  // More specific sub-resource routers are mounted before the generic
+  // events router below, same reasoning as jigsaw_puzzle/ar_basketball
+  // above - events.routes.ts itself has a "/:eventId" catch-all route that
+  // would otherwise shadow these.
+  app.use(
+    "/api/admin/carrefour_balloon/v1/events/:eventId/brands",
+    carrefourBalloonAdminBrandRoutes
+  );
+  app.use(
+    "/api/admin/carrefour_balloon/v1/events/:eventId/registration-config",
+    carrefourBalloonAdminRegistrationConfigRoutes
+  );
+  app.use(
+    "/api/admin/carrefour_balloon/v1/events/:eventId/gifts",
+    carrefourBalloonAdminGiftRoutes
+  );
+  app.use(
+    "/api/admin/carrefour_balloon/v1/events/:eventId/gift-pools/:poolId/entries",
+    carrefourBalloonAdminGiftPoolEntryRoutes
+  );
+  app.use(
+    "/api/admin/carrefour_balloon/v1/events/:eventId/gift-pools",
+    carrefourBalloonAdminGiftPoolRoutes
+  );
+  app.use(
+    "/api/admin/carrefour_balloon/v1/events/:eventId/gift-pool-entries",
+    carrefourBalloonAdminGiftPoolEntryStockRoutes
+  );
+  app.use(
+    "/api/admin/carrefour_balloon/v1/events/:eventId/stock-adjustments",
+    carrefourBalloonAdminStockAdjustmentRoutes
+  );
+  app.use(
+    "/api/admin/carrefour_balloon/v1/events/:eventId/wins",
+    carrefourBalloonAdminWinRoutes
+  );
+  app.use(
+    "/api/admin/carrefour_balloon/v1/events/:eventId/stats",
+    carrefourBalloonAdminStatsRoutes
+  );
+  app.use("/api/admin/carrefour_balloon/v1/events", carrefourBalloonAdminEventRoutes);
+
+  app.use("/api/carrefour_balloon/v1", carrefourBalloonGameRoutes);
+
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(jigsawPuzzleOpenApiDocument));
   // Separate path from jigsaw_puzzle's /api/docs mount above - each game
   // gets its own generated OpenAPI document rather than a merged one.
@@ -171,6 +231,11 @@ export const createApp = (): Express => {
     "/api/docs/safaricom_ceo",
     swaggerUi.serveFiles(safaricomCeoOpenApiDocument),
     swaggerUi.setup(safaricomCeoOpenApiDocument)
+  );
+  app.use(
+    "/api/docs/carrefour_balloon",
+    swaggerUi.serveFiles(carrefourBalloonOpenApiDocument),
+    swaggerUi.setup(carrefourBalloonOpenApiDocument)
   );
 
   app.use(notFound);

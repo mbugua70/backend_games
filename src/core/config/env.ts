@@ -37,6 +37,20 @@ const envSchema = z.object({
     .positive()
     .default(15 * 60_000),
   SAFARICOM_CEO_LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+  // Rate limits for carrefour_balloon's public endpoints (game-config/
+  // participants/wins) and its admin login separately, same split rationale
+  // as the SAFARICOM_CEO_* pair above.
+  CARREFOUR_BALLOON_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  CARREFOUR_BALLOON_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(60),
+  CARREFOUR_BALLOON_LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(15 * 60_000),
+  CARREFOUR_BALLOON_LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+  // Lifetime of the opaque participant token issued by POST /participants
+  // when registration is enabled - long enough to cover a full event day.
+  CARREFOUR_BALLOON_PARTICIPANT_TOKEN_EXPIRES_IN: z.string().min(1).default("24h"),
 });
 
 const parsed = envSchema.safeParse(process.env);
