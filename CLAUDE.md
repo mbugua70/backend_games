@@ -340,3 +340,66 @@ the second seeds a ready-to-play demo event (shared pool, three
 brands, two per-brand pools, and one gift each at normal/0%-probability/
 award-disabled/out-of-stock) for manually exercising the flow above
 without hand-building one through the admin API first.
+
+## safaricom_trivia (`src/games/safaricom_trivia/`)
+
+Backend for the Safaricom trivia quiz (frontend: the `trivia_game_two`
+Vite app). Replaces the standalone `safaricom_triviabackend01` Express
+app. Same layering as the other REST games; routes mounted at
+`/api/safaricom_trivia/v1/...` (public) and
+`/api/admin/safaricom_trivia/v1/...` (admin), docs at
+`/api/docs/safaricom_trivia`. Like safaricom_ceo, the public routes
+carry no org in the URL - `SAFARICOM_TRIVIA_ORG_SLUG` resolves it.
+
+**The client checks answers, the server scores.** This is deliberate:
+event wifi is unreliable, so a game must play with no request per
+answer. `POST /sessions` returns every question *with*
+`correctOptionId`, the frontend reveals right/wrong locally, and only at
+the end does `POST /sessions/:id/submit` send the option ids the player
+picked. `services/scoring.service.ts#scoreAnswers` recomputes the score
+from the session's own snapshot - the request has no score field and
+any extra field is ignored. What this does *not* stop: a player reading
+the answers in DevTools mid-game. That trade-off was accepted; don't
+"fix" it by adding a per-answer request.
+
+**One play per phone, ever.** Phones are normalized to `2547…`/`2541…`
+(`services/phone.ts`) so formatting can't dodge the rule; a unique index
+on `(organizationId, phone)` backs it. Each player has at most one
+`Session` (unique index on `playerId`), which makes "start game"
+idempotent: a refresh or double tap returns the same session and the
+same questions. Re-registering a phone whose game is unfinished returns
+a fresh token so the player can resume; once the session is
+`COMPLETED`, registration and start both return `409 "You have already
+played"`.
+
+**Sessions snapshot their questions** (text, options, correct option)
+at draw time, so an admin editing or deactivating a question mid-event
+never changes a game already in progress. Submit is exactly-once via a
+conditional `findOneAndUpdate` on `status: "IN_PROGRESS"`; a retried or
+concurrent submit returns the stored result, never a re-score. A submit
+after `startedAt + totalTimeLimitMs + LATE_SUBMIT_GRACE_MS` is still
+scored but flagged `isLate`, and late games are left off the leaderboard
+by default.
+
+`GameConfig` (one per org, created with defaults on first read) holds
+questions per game, the per-question and total timers, and the
+answer-button colours - the last replaces the legacy `colors_answers`
+collection. Admin question/config writes are `SUPER_ADMIN`-only.
+
+```bash
+npm run seed:admin:safaricom_trivia -- --org safaricom-trivia --name <n> --email <e> --password <p>
+npm run seed:questions:safaricom_trivia -- --replace   # load content/ziidiShariah.json, deactivate all other questions
+LEGACY_MONGODB_URI=<old-db-uri> npm run import:legacy:safaricom_trivia -- --dry-run
+LEGACY_MONGODB_URI=<old-db-uri> npm run import:legacy:safaricom_trivia -- --correct-from first|index
+```
+
+Event question sets live as JSON in `content/` (validated by
+`tests/safaricom_trivia/content.unit.test.ts`); `seed:questions` matches
+on question text, so re-running after a fix updates in place. `--file`
+loads a different event's set.
+
+The import reads the legacy `sample_one_trivias`/`colors_answers`
+collections. Legacy questions store both `answers[]` and a
+`correct_answer` index, but the legacy frontend ignored the index and
+treated `answers[0]` as correct - so the script refuses to import
+without an explicit `--correct-from`; check the dry run's samples first.

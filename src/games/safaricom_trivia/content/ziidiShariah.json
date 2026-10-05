@@ -1,0 +1,301 @@
+{
+  "source": "Ziidi Shariah Q&A.docx (client-supplied, 2026-10-06)",
+  "questions": [
+    {
+      "text": "What is the minimum amount you can invest in your Ziidi Shariah account?",
+      "options": [
+        "Ksh 10",
+        "Ksh 50",
+        "Ksh 100",
+        "Ksh 1,000"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "True or False: Only Muslims can invest in ZIIDI Shari'ah.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "In Islamic principles, what does \"Halal\" refer to?",
+      "options": [
+        "Investments that guarantee profits",
+        "Things that are allowed and permissible",
+        "Only food and drinks",
+        "Religious holidays"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "True or False: There are no fees on deposits or withdrawals.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "Which body regulates the fund?",
+      "options": [
+        "Insurance Regulatory Authority",
+        "Capital Markets Authority",
+        "Kenya Revenue Authority",
+        "Communications Authority"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "Where can you view your Ziidi Shariah investment and track its performance?",
+      "options": [
+        "Ziidi Shari'ah Mini App on My OneApp",
+        "M-PESA Balance",
+        "M-PESA Transaction History",
+        "M-PESA Airtime & Data"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "True or False: Profit share in ZIIDI Shari'ah accrues daily.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "Who manages and administers ZIIDI Shari'ah MMF?",
+      "options": [
+        "Standard Investment Bank",
+        "Gulfcap Investment Bank",
+        "ALA Capital",
+        "KCB Bank"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "True or False: The minimum withdrawal amount is Ksh 100.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "What makes Ziidi Shariah different from a conventional investment option?",
+      "options": [
+        "It is structured to comply with applicable Sharia principles",
+        "It does not involve money",
+        "It is only available outside Kenya",
+        "It is an airtime product"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "True or False: You can access ZIIDI Shari'ah on a basic phone through USSD.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "True or False: You can hold both ZIIDI MMF and ZIIDI Shari'ah MMF at the same time.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "Which principle is most closely associated with Sharia-compliant investing?",
+      "options": [
+        "Guaranteed returns",
+        "Ethical and responsible investing",
+        "High-risk speculation",
+        "Interest-based lending"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "When a customer withdraws their Ziidi Shari'ah investment, where is the money credited?",
+      "options": [
+        "Their M-PESA account",
+        "Their M-PESA Lock Savings account",
+        "Their Bonga Points account",
+        "Their ZIIDI MMF account"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "Which of these is a way a Shari'ah-compliant fund earns returns?",
+      "options": [
+        "Charging borrowers interest",
+        "Profit-sharing arrangements",
+        "Betting on markets",
+        "Loan penalties"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "What type of fund is Ziidi Shari'ah?",
+      "options": [
+        "Equity Fund",
+        "Money Market Fund",
+        "Pension Fund",
+        "Insurance Fund"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "True or False: Daily transaction limits apply when you invest in ZIIDI Shari'ah, but there is no cap on your total investment balance.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "Which of these is NOT required when opting in to Ziidi Shari'ah?",
+      "options": [
+        "Be a registered M-PESA customer",
+        "Accept the Terms & Conditions",
+        "Provide a valid ID or passport",
+        "Meet the eligibility requirements for Ziidi Shari'ah"
+      ],
+      "correctOptionIndex": 2
+    },
+    {
+      "text": "What can a customer do with their investment through the applicable access channels?",
+      "options": [
+        "Redeem or withdraw it",
+        "Convert it to airtime automatically",
+        "Transfer it to Bonga Points",
+        "Use it as data"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "True or False: All investments carry some level of risk, including Sharia-compliant investments.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "What is the Arabic term for something that is forbidden under Islamic principles?",
+      "options": [
+        "Halal",
+        "Zakat",
+        "Haram",
+        "Sukuk"
+      ],
+      "correctOptionIndex": 2
+    },
+    {
+      "text": "True or False: A Sharia-compliant investment can only be used by Muslims.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "Which feature is unique to ZIIDI Shari'ah?",
+      "options": [
+        "Daily accrual of returns",
+        "Access via *334#",
+        "Screening out haram sectors under a Shari'ah board",
+        "Instant withdrawal to M-PESA"
+      ],
+      "correctOptionIndex": 2
+    },
+    {
+      "text": "Which of these is a reason the fund is described as \"Shari'ah-compliant\"?",
+      "options": [
+        "It is only open to Muslims",
+        "It avoids riba, avoids excessive uncertainty and screens out haram industries",
+        "It has no fees",
+        "It is run by Safaricom directly"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "True or False: Ziidi Shari'ah is a savings account that guarantees a fixed return.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "True or False: ZIIDI Shari'ah is only available to customers with smartphones.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "Which of these correctly pairs the term with its meaning?",
+      "options": [
+        "Riba = profit-sharing",
+        "Gharar = excessive uncertainty",
+        "Sukuk = interest",
+        "Mudarabah = loan penalty"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "What does the term \"Shari'ah-compliant\" describe in this fund?",
+      "options": [
+        "Who can invest",
+        "How the money is invested",
+        "Where the fund is advertised",
+        "How much you can withdraw"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "Which of these is required before you invest in ZIIDI Shari'ah?",
+      "options": [
+        "A bank account",
+        "Accepting the ZIIDI Shari'ah Terms and Conditions",
+        "A minimum balance of Ksh 10,000",
+        "A guarantor"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "True or False: ZIIDI Shari'ah has a fixed interest rate that never changes.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "Which of these is a way to contact Safaricom Customer Care for Ziidi Shari'ah?",
+      "options": [
+        "Dial 100 for Prepay or 200 for Post-pay customers",
+        "Visit the Trustee's branch only",
+        "Contact the Shari'ah Board directly",
+        "Write to the CMA only"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "Which of these is NOT a benefit listed for ZIIDI Shari'ah?",
+      "options": [
+        "No deposit or withdrawal fees",
+        "Start with Ksh 10",
+        "Guaranteed fixed returns",
+        "You can set up auto investment"
+      ],
+      "correctOptionIndex": 2
+    }
+  ]
+}

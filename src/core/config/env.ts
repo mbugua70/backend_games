@@ -51,6 +51,21 @@ const envSchema = z.object({
   // Lifetime of the opaque participant token issued by POST /participants
   // when registration is enabled - long enough to cover a full event day.
   CARREFOUR_BALLOON_PARTICIPANT_TOKEN_EXPIRES_IN: z.string().min(1).default("24h"),
+  // safaricom_trivia's public endpoints carry no org identifier in their
+  // URLs, same as safaricom_ceo - this slug resolves which Organization
+  // they belong to.
+  SAFARICOM_TRIVIA_ORG_SLUG: z.string().min(1).default("safaricom-trivia"),
+  SAFARICOM_TRIVIA_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  SAFARICOM_TRIVIA_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(30),
+  SAFARICOM_TRIVIA_LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(15 * 60_000),
+  SAFARICOM_TRIVIA_LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+  // Lifetime of the player token issued by POST /players - only needs to
+  // outlast one game, plus slack for a player who registers and starts later.
+  SAFARICOM_TRIVIA_PLAYER_TOKEN_EXPIRES_IN: z.string().min(1).default("6h"),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -15,7 +15,10 @@
     "seed:admin:safaricom_ceo": "tsx src/games/safaricom_ceo/scripts/seedAdmin.ts",
     "seed:content:safaricom_ceo": "tsx src/games/safaricom_ceo/scripts/seedContent.ts",
     "seed:admin:carrefour_balloon": "tsx src/games/carrefour_balloon/scripts/seedAdmin.ts",
-    "seed:demo:carrefour_balloon": "tsx src/games/carrefour_balloon/scripts/seedDemoEvent.ts"
+    "seed:demo:carrefour_balloon": "tsx src/games/carrefour_balloon/scripts/seedDemoEvent.ts",
+    "seed:admin:safaricom_trivia": "tsx src/games/safaricom_trivia/scripts/seedAdmin.ts",
+    "seed:questions:safaricom_trivia": "tsx src/games/safaricom_trivia/scripts/seedQuestions.ts",
+    "import:legacy:safaricom_trivia": "tsx src/games/safaricom_trivia/scripts/importLegacy.ts"
   },
   "keywords": [],
   "author": "",

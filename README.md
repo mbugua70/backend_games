@@ -31,6 +31,9 @@ npm run dev
 | `SAFARICOM_CEO_RATE_LIMIT_*` / `SAFARICOM_CEO_LOGIN_RATE_LIMIT_*` | Rate limit window/max for safaricom_ceo's public endpoints and admin login respectively |
 | `CARREFOUR_BALLOON_RATE_LIMIT_*` / `CARREFOUR_BALLOON_LOGIN_RATE_LIMIT_*` | Rate limit window/max for carrefour_balloon's public endpoints and admin login respectively |
 | `CARREFOUR_BALLOON_PARTICIPANT_TOKEN_EXPIRES_IN` | Lifetime of the opaque participant token issued on registration |
+| `SAFARICOM_TRIVIA_ORG_SLUG` | Which Organization safaricom_trivia's public (no-org-in-URL) endpoints belong to |
+| `SAFARICOM_TRIVIA_RATE_LIMIT_*` / `SAFARICOM_TRIVIA_LOGIN_RATE_LIMIT_*` | Rate limit window/max for safaricom_trivia's public endpoints and admin login respectively |
+| `SAFARICOM_TRIVIA_PLAYER_TOKEN_EXPIRES_IN` | Lifetime of the player token issued on registration |
 
 Startup validates these and exits on anything missing or malformed
 rather than running half-configured.

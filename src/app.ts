@@ -50,6 +50,11 @@ import carrefourBalloonAdminStatsRoutes from "./games/carrefour_balloon/routes/a
 import carrefourBalloonAdminStockAdjustmentRoutes from "./games/carrefour_balloon/routes/admin/stockAdjustment.routes";
 import carrefourBalloonAdminWinRoutes from "./games/carrefour_balloon/routes/admin/win.routes";
 import carrefourBalloonGameRoutes from "./games/carrefour_balloon/routes/game/game.routes";
+import { safaricomTriviaOpenApiDocument } from "./games/safaricom_trivia/openapi/document";
+import safaricomTriviaAdminRoutes from "./games/safaricom_trivia/routes/admin/admin.routes";
+import safaricomTriviaAdminAuthRoutes from "./games/safaricom_trivia/routes/admin/auth.routes";
+import safaricomTriviaAdminQuestionRoutes from "./games/safaricom_trivia/routes/admin/question.routes";
+import safaricomTriviaGameRoutes from "./games/safaricom_trivia/routes/game/game.routes";
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 300;
@@ -219,6 +224,14 @@ export const createApp = (): Express => {
 
   app.use("/api/carrefour_balloon/v1", carrefourBalloonGameRoutes);
 
+  // Endpoints for safaricom_trivia game
+
+  app.use("/api/admin/safaricom_trivia/v1/auth", safaricomTriviaAdminAuthRoutes);
+  app.use("/api/admin/safaricom_trivia/v1/questions", safaricomTriviaAdminQuestionRoutes);
+  app.use("/api/admin/safaricom_trivia/v1", safaricomTriviaAdminRoutes);
+
+  app.use("/api/safaricom_trivia/v1", safaricomTriviaGameRoutes);
+
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(jigsawPuzzleOpenApiDocument));
   // Separate path from jigsaw_puzzle's /api/docs mount above - each game
   // gets its own generated OpenAPI document rather than a merged one.
@@ -236,6 +249,11 @@ export const createApp = (): Express => {
     "/api/docs/carrefour_balloon",
     swaggerUi.serveFiles(carrefourBalloonOpenApiDocument),
     swaggerUi.setup(carrefourBalloonOpenApiDocument)
+  );
+  app.use(
+    "/api/docs/safaricom_trivia",
+    swaggerUi.serveFiles(safaricomTriviaOpenApiDocument),
+    swaggerUi.setup(safaricomTriviaOpenApiDocument)
   );
 
   app.use(notFound);
